@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>WorldUltimateRecords</title>
+<meta name="description" content="Bats des records depuis chez toi : défis dans le navigateur, défis filmés en direct avec chrono incrusté, vrais records du monde en vidéo.">
+<meta name="theme-color" content="#07040d">
+<meta property="og:title" content="WorldUltimateRecords">
+<meta property="og:description" content="Bats des records depuis chez toi et compare-toi aux records du monde.">
+<meta property="og:image" content="img/partage.jpg">
+<link rel="icon" href="img/logo.jpg">
+<link rel="apple-touch-icon" href="img/logo-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tilt+Neon&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="#defis"><img src="img/logo.jpg" alt=""><b>WorldUltimateRecords</b></a>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#defis" data-tab="defis">Défis</a>
+      <a href="#records" data-tab="records">Records</a>
+      <a href="#shorts" data-tab="shorts">Shorts</a>
+      <a href="#profil" data-tab="profil">Profil</a>
+    </nav>
+    <div class="top-actions">
+      <a class="btn sm solid gold passbtn" href="#membre">S'abonner</a>
+      <a class="btn sm subscribe" id="subBtn" href="#" target="_blank" rel="noopener" hidden>S'abonner</a>
+      <button class="bellbtn" id="bell" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notifPanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg><span class="bcount" id="bellCount" hidden>0</span></button>
+      <div class="notif-panel" id="notifPanel" hidden><p class="eyebrow" style="padding:10px 12px 0">Notifications</p><div id="notifList"></div></div>
+    </div>
+  </div>
+</header>
+<div class="setup-wrap"><div class="setup" id="setupNote" hidden>Mode démo : Supabase n'est pas encore configuré (fichier config.js). Les scores restent sur cet appareil.</div></div>
+
+<main>
+  <section id="defis" class="view">
+    <p class="eyebrow">Depuis chez toi</p>
+    <h1>Bats un record. Maintenant.</h1>
+    <p class="lede">Joue directement dans ton navigateur, ou filme-toi en direct sur un vrai record du monde. Le chrono et un code unique sont incrustés dans ta vidéo pendant l'enregistrement, puis elle est vérifiée avant d'entrer au classement.</p>
+    <div class="player">
+      <label for="pseudo">Ton pseudo</label>
+      <input id="pseudo" class="field" maxlength="24" placeholder="ex. Flash_42" autocomplete="nickname">
+      <span id="syncPill" class="status-pill"><i></i><span>Connexion…</span></span>
+      <span class="note" id="syncNote">Ton pseudo apparaît à côté de tes scores dans les classements.</span>
+    </div>
+
+    <a class="passcta" id="passCta" href="#membre">
+      <span><b>Pass Néon</b> · essais illimités, badge PASS doré, défis exclusifs</span>
+      <span class="btn solid gold sm"><span data-cfg="price">2,99 €</span>&nbsp;/ mois · S'abonner</span>
+    </a>
+
+    <div class="sec-head"><div><h2>Défis de la semaine</h2><p id="weekLeft"></p></div></div>
+    <div class="grid" id="weekly"></div>
+
+    <div class="sec-head"><div><h2>Les records du monde en vidéo</h2><p>Regarde comment les recordmen ont fait, puis tente de les battre.</p></div></div>
+    <div class="vids" id="vids"></div>
+
+    <div id="channelSec" hidden>
+      <div class="sec-head"><div><h2>Sur la chaîne WorldUltimateRecords</h2><p>Les derniers Shorts de la chaîne. Abonne-toi pour ne rater aucun record.</p></div>
+        <a class="btn solid" id="channelLink" href="#" target="_blank" rel="noopener">S'abonner à la chaîne</a></div>
+      <div class="vids" id="shortsList"></div>
+    </div>
+
+    <div class="sec-head"><div><h2>Devant ta caméra</h2><p>De vrais records du monde, à tenter chez toi. Tu te filmes en direct depuis le site : l'import de vidéo n'est pas possible.</p></div></div>
+    <div class="grid" id="gridCam"></div>
+
+    <div class="sec-head"><div><h2>Les défis WorldUltimateRecords</h2><p>Nos records maison, sans record du monde officiel : le premier score validé devient la référence à battre.</p></div></div>
+    <div class="grid" id="gridWur"></div>
+
+    <div class="sec-head"><div><h2>Défis exclusifs Pass Néon</h2><p>Réservés aux membres du Pass Néon.</p></div><a class="btn gold" href="#membre">Découvrir le Pass Néon</a></div>
+    <div class="grid" id="gridVip"></div>
+
+    <div class="sec-head"><div><h2>Dans ton navigateur</h2><p>Score mesuré automatiquement, sans vidéo.</p></div></div>
+    <div class="grid" id="gridWeb"></div>
+
+    <div class="sec-head"><div><h2>Records de la communauté</h2><p>Des défis inventés par les joueurs. Crée le tien : tu en deviens le premier recordman dès ta première tentative validée.</p></div>
+      <button class="btn solid" id="openCreate" aria-expanded="false" aria-controls="createForm">Créer un nouveau record</button></div>
+    <form class="create" id="createForm" hidden>
+      <label class="full">Nom du record<input class="field" id="cName" maxlength="60" required placeholder="ex. Plus de chaussettes enfilées en 1 minute"></label>
+      <label class="full">Règles<textarea class="field" id="cDesc" maxlength="240" rows="2" required placeholder="Ce qui compte, ce qui est interdit, comment filmer."></textarea></label>
+      <label>Type de mesure
+        <select class="field" id="cMode">
+          <option value="count">Le plus de répétitions en un temps donné</option>
+          <option value="time">Le temps le plus court</option>
+          <option value="hold">La durée la plus longue</option>
+        </select></label>
+      <label id="cWinWrap">Durée de l'épreuve
+        <select class="field" id="cWin"><option value="30">30 secondes</option><option value="60" selected>1 minute</option><option value="120">2 minutes</option></select></label>
+      <label id="cUnitWrap">Ce qu'on compte<input class="field" id="cUnit" maxlength="20" placeholder="ex. chaussettes"></label>
+      <div class="full row" style="justify-content:flex-start"><button class="btn solid" type="submit" id="cSubmit">Publier ce record</button><button class="btn ghost" type="button" id="cCancel">Annuler</button><span class="msg" id="cMsg"></span></div>
+    </form>
+    <div class="grid" id="gridCustom"></div>
+  </section>
+
+  <section id="records" class="view" hidden>
+    <p class="eyebrow">Classements</p>
+    <h1>Records actuels et tentatives</h1>
+    <div class="search"><input id="q" class="field" type="search" placeholder="Rechercher un joueur ou un défi…" aria-label="Rechercher un joueur ou un défi"></div>
+    <div class="chips" id="chips"></div>
+    <div class="mod" id="modPanel" hidden>
+      <h2>Vidéos à vérifier</h2>
+      <p class="msg">Section réservée à l'administrateur. Vérifie que le code est lisible, que le chrono correspond et que la personne filmée est d'accord, puis valide ou refuse. Une vidéo refusée est supprimée.</p>
+      <div class="mod-list" id="modPending"></div>
+      <h2 style="margin-top:24px">Signalements</h2>
+      <p class="msg">Une vidéo signalée 3 fois est masquée automatiquement. Rétablis-la ou supprime-la.</p>
+      <div class="mod-list" id="modFlagged"></div>
+    </div>
+    <div class="recgrid" id="boards"></div>
+    <div class="section-gap">
+      <h2>Toutes les tentatives</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Quand</th><th>Joueur</th><th>Défi</th><th class="r">Score</th><th>Statut</th></tr></thead>
+        <tbody id="attemptRows"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="profil" class="view" hidden>
+    <div id="profileBox"></div>
+  </section>
+
+  <section id="classement" class="view" hidden>
+    <div id="rankBox"></div>
+  </section>
+
+  <section id="membre" class="view" hidden>
+    <p class="eyebrow">Abonnement</p>
+    <h1>Pass Néon</h1>
+    <p class="lede"><b class="price" data-cfg="price">2,99 €</b> par mois, sans engagement. Sans abonnement, chaque joueur a 3 essais officiels par défi et par jour.</p>
+    <ul class="perks">
+      <li><b>Essais illimités</b><span>Au lieu de 3 par défi et par jour.</span></li>
+      <li><b>Badge PASS doré</b><span>À côté de ton pseudo, partout sur le site.</span></li>
+      <li><b>Vidéos vérifiées en priorité</b><span>Tes tentatives passent en tête de la file de vérification.</span></li>
+      <li><b>Défis exclusifs</b><span>Château de cartes, bouteille flip, Rubik's Cube à une main.</span></li>
+      <li><b>En tête des Shorts</b><span>Tes vidéos sont mises en avant dans le fil Shorts.</span></li>
+      <li><b>30 records créés</b><span>Au lieu de 5 sans abonnement.</span></li>
+    </ul>
+    <div class="passbox" id="passBox"></div>
+  </section>
+
+  <section id="legal" class="view legal" hidden>
+    <p class="eyebrow">Informations</p>
+    <h1>Mentions légales et confidentialité</h1>
+    <h2>Éditeur du site</h2>
+    <p>WorldUltimateRecords est édité par <b data-cfg="editor"></b><span data-cfg="siret"></span>. Contact : <b data-cfg="mail"></b>.</p>
+    <h2>Hébergement</h2>
+    <p>Site hébergé par GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis (GitHub Pages). Scores, profils et vidéos stockés chez Supabase, Inc. (supabase.com), sur des serveurs situés dans l'Union européenne.</p>
+    <h2>Données collectées</h2>
+    <ul>
+      <li><b>Un identifiant anonyme</b>, créé automatiquement à ta première visite, pour relier tes scores à ton pseudo.</li>
+      <li><b>Ton pseudo, tes scores et les records que tu crées</b>, affichés publiquement.</li>
+      <li><b>Les vidéos de tes tentatives</b>, uniquement si tu les envoies. Elles sont publiques une fois envoyées, et vérifiées par l'administrateur.</li>
+      <li><b>Ton adresse e-mail</b>, uniquement si tu choisis de protéger ton compte. Elle n'est jamais affichée ni transmise.</li>
+      <li><b>Tes signalements</b>, visibles seulement par toi et l'administrateur.</li>
+      <li><b>Ton abonnement Pass Néon</b>, si tu en prends un : son statut et sa date de fin. Le paiement est géré par Stripe, qui conserve seul tes données bancaires.</li>
+    </ul>
+    <p>Ces données servent uniquement à faire fonctionner le site et l'abonnement. Elles ne sont ni vendues, ni utilisées pour de la publicité. Elles sont conservées jusqu'à ce que tu les supprimes, ou jusqu'à leur suppression par l'administrateur.</p>
+    <h2>Mineurs</h2>
+    <p>En France, un mineur de moins de 15 ans ne peut publier une vidéo de lui qu'avec l'accord d'un parent. Avant chaque envoi, tu dois confirmer avoir 15 ans ou plus, ou l'accord d'un parent. Un parent peut demander la suppression d'une vidéo à tout moment à l'adresse de contact : elle est supprimée sans justificatif.</p>
+    <h2>Tes droits</h2>
+    <p>Tu peux consulter, modifier ou supprimer tes données à tout moment depuis <a href="#profil">ton profil</a> (bouton « Supprimer mon compte »). Pour toute autre demande (accès, rectification, opposition), écris à l'adresse de contact. Si tu n'obtiens pas de réponse, tu peux saisir la CNIL (cnil.fr).</p>
+    <h2>Cookies et stockage</h2>
+    <p>Le site n'utilise aucun cookie publicitaire ni de mesure d'audience. Il enregistre dans ton navigateur ta session et ton pseudo, nécessaires au fonctionnement. Les vidéos YouTube et TikTok ne se chargent que si tu cliques dessus ; ces services peuvent alors déposer leurs propres cookies. La vérification anti-robot est assurée par Cloudflare Turnstile.</p>
+    <h2 id="cgv">Conditions de l'abonnement Pass Néon</h2>
+    <p><b>Prix et paiement.</b> Le Pass Néon coûte <b data-cfg="price"></b> TTC par mois<span data-cfg="tva"></span>. Le paiement est traité par Stripe ; WorldUltimateRecords n'a jamais accès à tes données bancaires.</p>
+    <p><b>Durée et résiliation.</b> L'abonnement est mensuel et se renouvelle automatiquement. Tu peux le résilier à tout moment depuis la page Pass Néon (« Gérer ou résilier mon abonnement ») : il reste actif jusqu'à la fin du mois déjà payé, sans remboursement du mois en cours.</p>
+    <p><b>Droit de rétractation.</b> Le Pass donne accès à un service numérique immédiatement. Conformément à l'article L221-28 du Code de la consommation, en demandant cet accès immédiat et en le confirmant avant le paiement, tu renonces à ton droit de rétractation de 14 jours.</p>
+    <p><b>Mineurs.</b> Si tu as moins de 18 ans, l'abonnement doit être payé et accepté par un parent.</p>
+    <p><b>Ce que le Pass ne garantit pas.</b> Les avantages concernent l'utilisation du site. Ils ne donnent aucun avantage dans la vérification elle-même : une vidéo d'abonné est examinée plus tôt, avec les mêmes règles que les autres.</p>
+    <p><b>Réclamations.</b> Écris d'abord à l'adresse de contact. En cas de litige non résolu, tu peux recourir gratuitement au médiateur de la consommation : <b data-cfg="mediator"></b>.</p>
+
+    <h2>Sécurité des défis</h2>
+    <p>Les défis sont conçus pour être faits chez soi sans danger. Prépare un espace dégagé, arrête-toi en cas de douleur et ne prends aucun risque pour un record. Les records du monde cités appartiennent à leurs détenteurs et organismes (Guinness World Records, WCA, WSSA) ; WorldUltimateRecords n'est affilié à aucun d'eux.</p>
+  </section>
+
+  <section id="shorts" class="view" hidden>
+    <p class="feed-hint">Fais défiler vers le haut pour le suivant · touche une vidéo pour le son</p>
+    <div class="feed" id="feed"></div>
+  </section>
+</main>
+<footer class="foot">
+  Records du monde : Guinness World Records, WCA (Rubik's Cube) et WSSA (sport stacking), vérifiés en octobre 2026. Les scores du site ne sont pas homologués officiellement.
+  · <a href="#legal">Mentions légales et confidentialité</a> <span id="footContact"></span>
+  · <button class="admin-link" id="adminBtn" type="button">Espace admin</button>
+</footer>
+
+<div class="arena" id="arena" hidden>
+  <div class="arena-top"><h2 id="arenaTitle">Défi</h2><button class="btn ghost x" id="arenaClose">Quitter</button></div>
+  <div class="stage" id="stage"></div>
+</div>
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-box">
+    <div class="row"><b id="modalTitle"></b><button class="btn ghost sm" id="modalClose">Fermer</button></div>
+    <div class="frame" id="modalFrame"></div>
+    <a class="msg" id="modalLink" href="#" target="_blank" rel="noopener">La vidéo ne s'affiche pas ? Ouvre-la sur le site d'origine.</a>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+<div class="captcha" id="captchaBox" hidden><div class="captcha-box"><p class="msg">Vérification anti-robot…</p><div id="captchaWidget"></div></div></div>
+
+<script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
