@@ -167,7 +167,7 @@ Commence en **mode test** (interrupteur « Test mode » en haut du tableau de bo
 ### D. Tester
 
 1. Envoie le `config.js` mis à jour sur GitHub.
-2. Sur le site : protège ton compte avec un e-mail (onglet Profil), puis va sur **Pass Néon**, coche les 3 cases et clique sur **S'abonner**.
+2. Sur le site : protège ton pseudo avec un mot de passe (onglet Profil, voir étape 12), puis va sur **Pass Néon**, coche les 3 cases et clique sur **S'abonner**.
 3. Paie avec la carte de test `4242 4242 4242 4242`, une date future et n'importe quel code.
 4. Reviens sur le site : en quelques secondes, le badge **PASS** apparaît et les essais deviennent illimités.
 5. Si rien ne se passe : Stripe → Webhooks → ton point de terminaison → regarde les erreurs. Une erreur 400 = mauvais `STRIPE_WEBHOOK_SECRET`. Une erreur 401 = « Verify JWT » encore activé.
@@ -177,6 +177,21 @@ Commence en **mode test** (interrupteur « Test mode » en haut du tableau de bo
 Désactive le mode test dans Stripe, puis refais **A**, **C** et l'étape 4 de **B** avec les clés et le lien **live**. Mets à jour `config.js` et les secrets Supabase.
 
 À savoir : pour une carte européenne, Stripe prélève environ 0,25 € + 1,5 % par paiement, plus environ 0,7 % pour la gestion des abonnements. Sur 2,99 €, il te reste donc environ 2,65 € par abonné et par mois, avant cotisations URSSAF. Vérifie les tarifs à jour sur stripe.com/fr/pricing.
+
+## Étape 12 : le mot de passe du pseudo (retrouver ses records partout)
+
+Sans cette étape, un joueur est lié à son navigateur : s'il change de téléphone ou vide son navigateur, il perd son pseudo et ses records. Avec elle, il ajoute un mot de passe à son pseudo (onglet **Profil → Mon compte**) et se reconnecte sur n'importe quel appareil avec **pseudo + mot de passe** : il retrouve ses records, ses vidéos, ses battles d'aura et son Pass Néon.
+
+1. Supabase → **Edge Functions** → **Deploy a new function** → **Via Editor**.
+2. Nom : `pseudo-account` (exactement). Remplace le code d'exemple par tout le contenu de `supabase/functions/pseudo-account/index.ts`, puis **Deploy**.
+3. Laisse **« Verify JWT » activé** (c'est le réglage par défaut). Aucun secret à ajouter.
+4. Colle à nouveau `supabase.sql` dans **SQL Editor** → **Run** (ça crée la petite table anti-force brute : 10 essais ratés par pseudo bloquent 15 minutes).
+5. Teste : onglet **Profil** → **Protéger mon pseudo** avec un mot de passe. Ouvre ensuite le site dans une fenêtre de navigation privée, va dans **Profil** → **Déjà un pseudo avec mot de passe ?**, entre ton pseudo et ton mot de passe : tes records doivent réapparaître.
+
+Bon à savoir :
+- Le mot de passe est stocké par Supabase (chiffré), jamais dans ta base ni sur GitHub. Toi non plus tu ne peux pas le voir.
+- Un joueur qui oublie son mot de passe peut aussi lier un e-mail (« Autre option : l'e-mail ») pour recevoir un lien de connexion.
+- Si l'enregistrement du mot de passe affiche une erreur d'adresse e-mail invalide, ouvre `index.ts` et remplace `joueurs.wur.invalid` par `joueurs.invalid`, et fais pareil dans `app.js` (ligne `TECH_MAIL`), puis redéploie.
 
 ## Langues (10 langues)
 

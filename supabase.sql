@@ -690,6 +690,17 @@ drop trigger if exists aura_reports_autohide on public.aura_reports;
 create trigger aura_reports_autohide after insert on public.aura_reports
   for each row execute function public.aura_report_autohide();
 
+-- 5d) Connexion par pseudo + mot de passe : anti-force brute ---------------
+-- Lue et écrite uniquement par la fonction pseudo-account (clé service_role).
+create table if not exists public.login_failures (
+  id         bigint generated always as identity primary key,
+  pseudo     text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists login_failures_idx on public.login_failures (pseudo, created_at desc);
+alter table public.login_failures enable row level security;
+delete from public.login_failures where created_at < now() - interval '1 day';
+
 -- 6) Suppression complète de son compte (droit à l'effacement) ------------
 create or replace function public.delete_my_account() returns void
 language plpgsql security definer set search_path = public, auth as $$
