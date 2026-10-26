@@ -120,8 +120,10 @@ Sans ça, un robot peut créer des milliers de faux joueurs. Il faut faire **les
 - **Notifications** : la cloche en haut prévient quand une vidéo est validée ou refusée, quand un record est battu, et toi quand des vidéos attendent. Avec « Activer les notifications », le navigateur affiche aussi une alerte, tant que le site est ouvert dans un onglet.
 - **Défis de la semaine** : 3 défis changent automatiquement chaque lundi, avec un classement de la semaine.
 - **3 essais par défi et par jour** (heure de Paris) : un essai est compté dès que le joueur lance un défi navigateur ou un enregistrement vidéo, même s'il abandonne. Supprimer une tentative ne rend pas l'essai. Les défis navigateur restent jouables sans limite en « mode entraînement » (score non enregistré). Toi, en tant qu'admin, tu n'as pas de limite.
-- **Pass Néon** : abonnement mensuel (étape 11). Essais illimités, badge PASS doré, vidéos vérifiées en priorité, 3 défis exclusifs, mise en avant dans les Shorts, 30 records créés au lieu de 5.
+- **Pass Néon** : abonnement mensuel ou annuel (étape 11). Essais illimités, badge PASS doré qui évolue avec l'ancienneté (1 mois, 3 mois, 6 mois, 1 an), pseudo en couleur, statistiques détaillées avec courbe de progression, ligues privées, vidéos vérifiées en priorité, 3 défis exclusifs, mise en avant dans les Shorts, 30 records créés au lieu de 5.
+- **Ligues privées** : un membre du Pass Néon crée une ligue (5 maximum) et partage son code ou son lien. Tout le monde peut la rejoindre gratuitement (50 membres maximum) et voit le classement entre membres, défi par défi. Seuls les membres voient le nom et la liste de la ligue.
 - **Limites anti-abus** : 40 tentatives par heure et par joueur, 30 signalements par jour, 30 records créés par joueur.
+- **Battles d'aura** (onglet « Aura ») : les joueurs postent une vidéo sur le thème de leur choix, en indiquant s'ils y gagnent ou y perdent de l'aura, ou lancent un duel. Les votes d'une vidéo « perdre de l'aura » comptent en négatif. Une vidéo peut être importée depuis l'appareil (60 s et 48 Mo maximum) ou filmée sur le site. Le premier joueur qui relève un duel devient l'adversaire, puis les votes restent ouverts 7 jours. Chaque vote reçu vaut +100 aura (visible sur le profil et dans le « Hall of aura »). Un joueur a 1 vote par battle, modifiable. Il ne peut pas voter pour lui-même ni dans un duel où il joue. Toutes les vidéos d'aura passent par toi avant d'être publiées : tu les valides ou les refuses en haut de l'onglet Aura. Les vidéos importées peuvent avoir été montées : refuse tout ce qui est dangereux, humiliant ou filmé sans l'accord des personnes. Les façons de gagner ou perdre de l'aura sont votées par les joueurs (👍) : les plus votées montent en haut des listes. Les joueurs peuvent en proposer de nouvelles ; tu les valides ou les refuses en haut de l'onglet Aura.
 
 ## Étape 11 : le Pass Néon (abonnement payant)
 
@@ -143,7 +145,8 @@ Commence en **mode test** (interrupteur « Test mode » en haut du tableau de bo
 
 1. Crée un compte sur **stripe.com**.
 2. **Catalogue de produits** → **Ajouter un produit** : nom `Pass Néon`, prix **2,99 €**, **Récurrent**, **Mensuel**. Enregistre.
-3. **Payment Links** → **Nouveau** → choisis le produit Pass Néon. Dans l'onglet **Après le paiement**, choisis **Ne pas afficher de page de confirmation** et **Rediriger vers ton site** : `https://ton-pseudo.github.io/worldultimaterecords/#membre`. Crée le lien et copie-le dans `stripePaymentLink`.
+   Ajoute aussi un **deuxième prix** au même produit : **24,99 €**, **Récurrent**, **Annuel**.
+3. **Payment Links** → **Nouveau** → choisis le produit Pass Néon. Dans l'onglet **Après le paiement**, choisis **Ne pas afficher de page de confirmation** et **Rediriger vers ton site** : `https://ton-pseudo.github.io/worldultimaterecords/#membre`. Crée le lien et copie-le dans `stripePaymentLink`. Refais la même chose avec le prix annuel et copie ce second lien dans `stripePaymentLinkYearly` (laisse-le vide si tu ne veux proposer que le mensuel).
 4. **Paramètres** → **Facturation** → **Portail client** : active-le, autorise la **résiliation**, puis copie le **lien de connexion** (`https://billing.stripe.com/p/login/...`) dans `stripePortalLink`.
 5. **Développeurs** → **Clés API** : copie la **clé secrète** (`sk_test_...`). Elle ne va **jamais** dans `config.js`.
 
@@ -175,6 +178,15 @@ Désactive le mode test dans Stripe, puis refais **A**, **C** et l'étape 4 de *
 
 À savoir : pour une carte européenne, Stripe prélève environ 0,25 € + 1,5 % par paiement, plus environ 0,7 % pour la gestion des abonnements. Sur 2,99 €, il te reste donc environ 2,65 € par abonné et par mois, avant cotisations URSSAF. Vérifie les tarifs à jour sur stripe.com/fr/pricing.
 
+## Langues (10 langues)
+
+Un sélecteur en haut à droite affiche le site en français, anglais, chinois, hindi, espagnol, arabe (de droite à gauche), bengali, portugais, russe ou indonésien. Au premier passage, le site choisit la langue du navigateur ; le choix du joueur est ensuite mémorisé.
+
+- `i18n.js` fait la traduction, les dictionnaires sont dans le dossier `site/i18n/` (un fichier `.json` par langue).
+- Le français reste la langue de base : pour corriger une traduction, ouvre le fichier de la langue et modifie le texte à droite du texte français.
+- Les pseudos, les noms et règles des records créés par les joueurs ne sont pas traduits.
+- Si tu ajoutes un nouveau texte au site, il s'affichera en français dans les autres langues tant que tu ne l'ajoutes pas aux dictionnaires.
+
 ## Nom de domaine (facultatif, environ 10 €/an)
 
 1. Achète `worldultimaterecords.fr` (ou `.com`) chez un registraire : OVH, Gandi, Namecheap…
@@ -187,9 +199,11 @@ Désactive le mode test dans Stripe, puis refais **A**, **C** et l'étape 4 de *
 
 ## Mettre à jour une installation existante
 
-1. Sur GitHub, envoie tous les fichiers du dossier `site` (Add file → Upload files). Ils remplacent les anciens. Pour `config.js`, prends le nouveau fichier et recopie-y tes valeurs actuelles (clés Supabase, etc.) : il contient de nouvelles lignes pour le Pass Néon et les mentions légales.
+1. Sur GitHub, ouvre le dossier `site`, puis envoie tous les fichiers du dossier `site` (Add file → Upload files) en les glissant, **y compris le dossier `i18n`** (glisse le dossier entier dans la zone d'envoi). Ils remplacent les anciens. Pour `config.js`, prends le nouveau fichier et recopie-y tes valeurs actuelles (clés Supabase, etc.) : il contient de nouvelles lignes pour le Pass Néon et les mentions légales.
 2. Supabase → SQL Editor → colle tout `supabase.sql` → **Run**. Aucun score n'est supprimé. Les joueurs existants gardent leur pseudo quand c'est possible.
 3. Fais les étapes 8, 9 et 11 si ce n'est pas déjà fait.
+
+**Important pour les nouveaux défis navigateur et les battles d'aura** : refais bien l'étape 2 ci-dessus (coller `supabase.sql` et **Run**). Sinon, les scores des nouveaux défis ne pourront pas être enregistrés, et l'onglet Aura restera vide.
 
 ## Bon à savoir
 

@@ -23,6 +23,7 @@
     <nav class="tabs" aria-label="Sections">
       <a href="#defis" data-tab="defis">Défis</a>
       <a href="#records" data-tab="records">Records</a>
+      <a href="#aura" data-tab="aura">Aura</a>
       <a href="#shorts" data-tab="shorts">Shorts</a>
       <a href="#profil" data-tab="profil">Profil</a>
     </nav>
@@ -119,6 +120,42 @@
     </div>
   </section>
 
+  <section id="aura" class="view" hidden>
+    <p class="eyebrow">Battles d'aura</p>
+    <h1>Qui a le plus d'aura ?</h1>
+    <p class="lead">Poste une vidéo sur le thème de ton choix, du moment que tu y gagnes ou y perds de l'aura, ou défie quelqu'un en duel. La communauté vote : chaque vote compte <b class="aurapts">100 aura</b>.</p>
+    <div class="row" style="justify-content:flex-start">
+      <button class="btn solid" data-auranew="solo">Poster un moment d'aura</button>
+      <button class="btn solid gold" data-auranew="duel">Lancer un duel</button>
+    </div>
+    <h2 class="section-gap">Les façons de gagner ou perdre de l'aura</h2>
+    <p class="msg">Vote 👍 pour celles que tu trouves les plus justes : les plus votées montent en haut de la liste. 🎬 pour te filmer en train de la réaliser.</p>
+    <div class="auraguide">
+      <div class="auracol gain"><h2>Gagner de l'aura</h2><ul id="auraGain"></ul></div>
+      <div class="auracol loss"><h2>Perdre de l'aura</h2><ul id="auraLoss"></ul></div>
+    </div>
+    <p class="msg">Pas de danger et pas de moquerie : une vidéo qui met quelqu'un en danger, l'humilie ou le filme sans son accord est refusée.</p>
+    <div class="section-gap" id="ideasSec"><h2>Propose ta façon</h2>
+      <p class="msg">Une idée de façon de gagner ou de perdre de l'aura ? Propose-la : une fois validée, elle s'ajoute aux listes ci-dessus et tout le monde peut voter.</p>
+      <form class="ideaform" id="ideaForm">
+        <div class="ideasign"><label><input type="radio" name="ideaSign" value="+" checked> Gagner</label><label><input type="radio" name="ideaSign" value="-"> Perdre</label></div>
+        <select id="ideaPts" class="field" aria-label="Points d'aura"><option>1000</option><option>900</option><option>800</option><option>700</option><option>600</option><option selected>500</option><option>400</option><option>300</option><option>200</option><option>100</option></select>
+        <input id="ideaText" class="field" maxlength="90" placeholder="ex. Garder son calme pendant l'alarme incendie">
+        <button class="btn solid" type="submit">Proposer</button>
+      </form>
+      <p class="msg" id="ideaMsg"></p>
+      <div id="auraIdeas"></div>
+    </div>
+    <div class="mod" id="auraMod" hidden></div>
+    <div class="section-gap"><h2>Duels en cours · vote !</h2><p class="msg">Un vote par battle, modifiable. Les votes restent ouverts 7 jours.</p><div class="auragrid duels" id="auraDuels"></div></div>
+    <div class="section-gap"><h2>Duels ouverts · relève le défi</h2><p class="msg">Réponds avec ta propre vidéo : le premier qui relève le duel devient l'adversaire.</p><div class="auragrid" id="auraOpen"></div></div>
+    <div class="section-gap"><h2>Moments d'aura</h2>
+      <div class="chips"><button class="chip" data-aurasort="top">Les plus votés</button><button class="chip" data-aurasort="new">Les plus récents</button></div>
+      <div class="auragrid" id="auraSolo"></div></div>
+    <div class="section-gap"><h2>Hall of aura</h2><div class="aurahall" id="auraHall"></div></div>
+    <div class="section-gap"><h2>Battles terminées</h2><div class="auragrid duels" id="auraEnded"></div></div>
+  </section>
+
   <section id="profil" class="view" hidden>
     <div id="profileBox"></div>
   </section>
@@ -127,10 +164,14 @@
     <div id="rankBox"></div>
   </section>
 
+  <section id="ligue" class="view" hidden>
+    <div id="leagueBox"></div>
+  </section>
+
   <section id="membre" class="view" hidden>
     <p class="eyebrow">Abonnement</p>
     <h1>Pass Néon</h1>
-    <p class="lede"><b class="price" data-cfg="price">2,99 €</b> par mois, sans engagement. Sans abonnement, chaque joueur a 3 essais officiels par défi et par jour.</p>
+    <p class="lede"><b class="price" data-cfg="price">2,99 €</b> par mois sans engagement, ou <b class="price" data-cfg="priceY">24,99 €</b> par an. Sans abonnement, chaque joueur a 3 essais officiels par défi et par jour.</p>
     <ul class="perks">
       <li><b>Essais illimités</b><span>Au lieu de 3 par défi et par jour.</span></li>
       <li><b>Badge PASS doré</b><span>À côté de ton pseudo, partout sur le site.</span></li>
@@ -138,6 +179,10 @@
       <li><b>Défis exclusifs</b><span>Château de cartes, bouteille flip, Rubik's Cube à une main.</span></li>
       <li><b>En tête des Shorts</b><span>Tes vidéos sont mises en avant dans le fil Shorts.</span></li>
       <li><b>30 records créés</b><span>Au lieu de 5 sans abonnement.</span></li>
+      <li><b>Pseudo en couleur</b><span>Violet, cyan, rose, or ou vert, visible partout sur le site.</span></li>
+      <li><b>Statistiques détaillées</b><span>Courbe de progression, meilleur score du mois, écart avec le 1er et avec le record du monde.</span></li>
+      <li><b>Ligues privées</b><span>Crée jusqu'à 5 classements entre amis, en classe ou en famille. Tes invités les rejoignent gratuitement.</span></li>
+      <li><b>Badge d'ancienneté</b><span>Ton badge évolue : 1 mois, 3 mois, 6 mois, puis 1 an.</span></li>
     </ul>
     <div class="passbox" id="passBox"></div>
   </section>
@@ -205,5 +250,6 @@
 <script src="config.js"></script>
 <script src="vendor/supabase.js"></script>
 <script src="app.js"></script>
+<script src="i18n.js"></script>
 </body>
 </html>
