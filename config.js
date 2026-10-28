@@ -4,12 +4,11 @@
 // =====================================================================
 window.WUR_CONFIG = {
   // --- Supabase (obligatoire pour le classement en ligne) ---
-  supabaseUrl: "",       // ex. "https://abcdefghijkl.supabase.co"
-  supabaseAnonKey: "",   // clé "anon" / "publishable" (publique). JAMAIS la clé "service_role" / "secret".
-
+ supabaseUrl: "https://uhuxtytfuhisvaepulds.supabase.co",
+  supabaseAnonKey: "sb_publishable_aXD1XTUedOt_6TBGwAjfsw_3GocAhMG",
   // --- Mentions légales (obligatoire avant de partager le site) ---
-  editorName: "",        // ton nom (obligatoire dès que le site vend un abonnement)
-  contactEmail: "",      // adresse de contact dédiée au site
+ editorName: "WorldUltimateRecords",
+  contactEmail: "worldultimaterecords@outlook.com",
   siret: "",             // ton numéro SIRET de micro-entreprise, ex. "123 456 789 00012"
   tvaMention: "",        // ex. "TVA non applicable, art. 293 B du CGI" (si tu es en franchise de TVA)
   mediator: "",          // ton médiateur de la consommation, ex. "CM2C, www.cm2c.net"
