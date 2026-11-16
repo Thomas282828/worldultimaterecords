@@ -469,8 +469,3 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .sidetag.good{color:var(--good)}.sidetag.bad{color:var(--bad)}
 .aurapts.neg{color:var(--bad)}
 .auraform .ideasign{align-self:flex-start;margin:4px 0 8px}
-
-.pwform{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
-.pwform .field{flex:1;min-width:180px;width:auto}
-.acctmore{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}
-.acctmore summary{cursor:pointer;font-weight:600}

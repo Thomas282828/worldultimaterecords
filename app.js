@@ -171,7 +171,7 @@ const WEB_IDS=BASE.filter(c=>c.kind==="web").map(c=>c.id);
 /* ================= data layer ================= */
 // attempt in UI: {id, uid, pseudo, c, v, t, vid(url|null), path, code, status: auto|pending|ok|no, hidden}
 let attempts=[], myId=null, isAdmin=false, sb=null, live=false, currentTab="defis", profileUid=null;
-let myProfile=null, myEmail="", isAnon=true, hasPw=false, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false;
+let myProfile=null, myEmail="", isAnon=true, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false;
 const LIMIT=3;
 const parisToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Paris"}).format(new Date());
 const isMember=()=>members.has(myId)||isAdmin;
@@ -208,9 +208,6 @@ function getCaptcha(){
   });
 }
 const withCaptcha=async o=>{const t=await getCaptcha();return t?Object.assign({},o,{captchaToken:t}):o};
-const TECH_MAIL="@joueurs.wur.invalid";
-function setUserFlags(u){hasPw=!!(u.app_metadata&&u.app_metadata.pw);const em=u.email||"";myEmail=em.endsWith(TECH_MAIL)?"":em;isAnon=!!u.is_anonymous&&!hasPw&&!myEmail}
-async function fnError(error){try{const j=await error.context.json();return j.error||error.message}catch(e){return error.message||String(error)}}
 
 function rowToAttempt(r){
   return {id:r.id,uid:r.user_id,pseudo:String(r.pseudo||"Anonyme").slice(0,24),c:r.challenge,v:+r.value,t:Date.parse(r.created_at)||0,
@@ -229,7 +226,7 @@ const DB={
         if(r.error)throw r.error; session=r.data.session;
       }
       await this.afterAuth(session.user);
-      sb.auth.onAuthStateChange((ev,s)=>{if(s&&s.user&&s.user.id!==myId)this.afterAuth(s.user);else if(s&&s.user&&(ev==="USER_UPDATED"||ev==="TOKEN_REFRESHED")){setUserFlags(s.user);renderAll()}});
+      sb.auth.onAuthStateChange((ev,s)=>{if(s&&s.user&&s.user.id!==myId)this.afterAuth(s.user);else if(s&&s.user&&ev==="USER_UPDATED"){myEmail=s.user.email||"";isAnon=!!s.user.is_anonymous;renderAll()}});
       sb.channel("wur").on("postgres_changes",{event:"*",schema:"public",table:"attempts"},()=>this.refreshSoon())
         .on("postgres_changes",{event:"*",schema:"public",table:"challenges"},()=>this.refreshSoon())
         .on("postgres_changes",{event:"*",schema:"public",table:"reports"},()=>this.refreshSoon())
@@ -241,7 +238,7 @@ const DB={
     }catch(e){console.warn(e);toast("Connexion au classement impossible : "+(e.message||e));this.local()}
   },
   async afterAuth(user){
-    myId=user.id; setUserFlags(user); live=true;
+    myId=user.id; myEmail=user.email||""; isAnon=!!user.is_anonymous; live=true;
     const [ad,pr]=await Promise.all([
       sb.from("admins").select("user_id").eq("user_id",myId).maybeSingle(),
       sb.from("profiles").select("*").eq("user_id",myId).maybeSingle()]);
@@ -467,24 +464,6 @@ const DB={
   async emailLogin(email){
     const {error}=await sb.auth.signInWithOtp({email,options:await withCaptcha({shouldCreateUser:false,emailRedirectTo:location.origin+location.pathname})});
     if(error)throw error;
-  },
-  async setPassword(password){
-    const {error}=await sb.functions.invoke("pseudo-account",{body:{action:"set-password",password}});
-    if(error)throw new Error(await fnError(error));
-    const r=await sb.auth.refreshSession(); if(r.data&&r.data.user)setUserFlags(r.data.user); else hasPw=true;
-    renderAll();
-  },
-  async pseudoLogin(pseudo,password){
-    const t=await getCaptcha();
-    const {data,error}=await sb.functions.invoke("pseudo-account",{body:{action:"login",pseudo,password,captchaToken:t}});
-    if(error)throw new Error(await fnError(error));
-    const r=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
-    if(r.error)throw r.error;
-    if(r.data.user&&r.data.user.id!==myId)await this.afterAuth(r.data.user);
-  },
-  async logout(){
-    try{await sb.auth.signOut()}catch(e){}
-    try{localStorage.removeItem("wur_pseudo")}catch(e){} location.reload();
   },
   async adminLogin(email,pw){
     const {data,error}=await sb.auth.signInWithPassword({email,password:pw,options:await withCaptcha({})});
@@ -942,22 +921,11 @@ function renderProfile(){
     html+=`<h2 style="margin-top:28px">Mes ligues privées</h2><p class="msg">Un classement rien qu'entre amis, en classe ou en famille.</p>`+leaguesHtml();
     html+=`<h2 style="margin-top:28px">Mon compte</h2><div class="acct">`;
     if(!live)html+=`<p class="msg">Le compte en ligne sera disponible quand le site sera relié à Supabase.</p>`;
-    else{
-      const pseudoNow=myProfile&&myProfile.pseudo;
-      const pwForm=lbl=>`<form class="pwform" id="pwForm"><input class="field" id="pw1" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Mot de passe (8 caractères min.)"><input class="field" id="pw2" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Confirme le mot de passe"><button class="btn solid" type="submit">${lbl}</button></form>`;
-      if(hasPw)html+=`<p class="msg good">Ton pseudo « ${esc(pseudoNow||"")} » est protégé par un mot de passe. Sur un autre appareil, connecte-toi ci-dessous avec ton pseudo et ton mot de passe : tu retrouves tous tes records, tes vidéos et ton Pass Néon.</p>
-        <details class="acctmore"><summary>Changer mon mot de passe</summary>${pwForm("Changer le mot de passe")}</details>`;
-      else if(pseudoNow)html+=`<p class="msg">Ajoute un mot de passe à ton pseudo « ${esc(pseudoNow)} » pour garder tes records et les retrouver sur n'importe quel appareil.</p>${pwForm("Protéger mon pseudo")}`;
-      else html+=`<p class="msg">Choisis d'abord un pseudo (en haut de la page Défis), puis ajoute-lui un mot de passe pour retrouver tes records partout.</p>`;
-      html+=`<h3 style="margin-top:18px">${hasPw?"Se connecter avec un autre pseudo":"Déjà un pseudo avec mot de passe ?"}</h3>
-        ${pseudoNow&&isAnon?`<p class="msg bad">Attention : le pseudo « ${esc(pseudoNow)} » de cet appareil n'a pas de mot de passe. Si tu te connectes à un autre pseudo, tu ne pourras plus le récupérer.</p>`:""}
-        <form class="pwform" id="pwLogin"><input class="field" id="lgPseudo" maxlength="24" required autocomplete="username" placeholder="Ton pseudo"><input class="field" id="lgPw" type="password" maxlength="72" required autocomplete="current-password" placeholder="Mot de passe"><button class="btn" type="submit">Se connecter</button></form>
-        ${isAnon?"":`<div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn sm ghost" id="logoutBtn">Se déconnecter de cet appareil</button></div>`}`;
-      html+=`<details class="acctmore"><summary>Autre option : l'e-mail</summary>`+(myEmail?`<p class="msg good">Compte aussi protégé par l'e-mail ${esc(myEmail)}.</p>`
-        :`<p class="msg">Tu peux aussi lier ton compte à ton e-mail, pour recevoir un lien de connexion si tu oublies ton mot de passe.</p>
-        <form class="row" id="linkForm" style="justify-content:flex-start"><input class="field" id="linkEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Lier mon e-mail</button></form>`)+`
-        <form class="row" id="loginForm" style="justify-content:flex-start"><input class="field" id="loginEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Recevoir un lien de connexion</button></form></details>`;
-    }
+    else if(isAnon)html+=`<p class="msg">Ton compte est lié à ce navigateur. Ajoute ton e-mail pour le retrouver sur un autre appareil et ne jamais perdre ton pseudo.</p>
+      <form class="row" id="linkForm" style="justify-content:flex-start"><input class="field" id="linkEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Protéger mon compte</button></form>
+      <p class="msg">Déjà protégé sur un autre appareil ?</p>
+      <form class="row" id="loginForm" style="justify-content:flex-start"><input class="field" id="loginEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Recevoir un lien de connexion</button></form>`;
+    else html+=`<p class="msg good">Compte protégé par l'e-mail ${esc(myEmail)}. Pour te connecter sur un autre appareil, utilise « Recevoir un lien de connexion » depuis cet appareil-là.</p>`;
     html+=`<div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn" id="notifBtn">${"Notification" in window&&Notification.permission==="granted"?"Notifications activées":"Activer les notifications"}</button></div>
       <p class="msg">Le site te prévient quand ta vidéo est validée ou quand ton record est battu, tant qu'il est ouvert dans un onglet.</p>
       <div class="danger"><b>Supprimer toutes mes données</b><p class="msg">Efface ton pseudo, tes scores, tes vidéos et les records que tu as créés. Action définitive.</p>
@@ -967,14 +935,6 @@ function renderProfile(){
   if(own){bindAccount();bindStats();bindLeagues()}
 }
 function bindAccount(){
-  const pf=$("pwForm"); if(pf)pf.onsubmit=async e=>{e.preventDefault();const a=$("pw1").value,b=$("pw2").value;
-    if(a.length<8){toast("Le mot de passe doit faire 8 caractères minimum.");return}
-    if(a!==b){toast("Les deux mots de passe ne sont pas identiques.");return}
-    const bt=pf.querySelector("button");bt.disabled=true;
-    try{await DB.setPassword(a);toast("Mot de passe enregistré : ton pseudo est protégé.");renderProfile()}catch(err){toast("Impossible : "+(err.message||err));bt.disabled=false}};
-  const pl=$("pwLogin"); if(pl)pl.onsubmit=async e=>{e.preventDefault();const bt=pl.querySelector("button");bt.disabled=true;
-    try{await DB.pseudoLogin($("lgPseudo").value.trim(),$("lgPw").value);toast("Connecté : tes records sont de retour !");showTab("profil")}catch(err){toast(err.message||String(err));bt.disabled=false}};
-  const lo=$("logoutBtn"); if(lo)lo.onclick=()=>{lo.disabled=true;DB.logout()};
   const lf=$("linkForm"); if(lf)lf.onsubmit=async e=>{e.preventDefault();try{await DB.linkEmail($("linkEmail").value.trim());toast("E-mail envoyé : clique sur le lien reçu pour confirmer.")}catch(err){toast("Impossible : "+(err.message||err))}};
   const lg=$("loginForm"); if(lg)lg.onsubmit=async e=>{e.preventDefault();try{await DB.emailLogin($("loginEmail").value.trim());toast("Lien envoyé : ouvre-le sur cet appareil pour te connecter.")}catch(err){toast(/not found|signups not allowed/i.test(err.message)?"Aucun compte protégé avec cet e-mail.":"Impossible : "+(err.message||err))}};
   const nb=$("notifBtn"); if(nb)nb.onclick=async()=>{if(!("Notification" in window)){toast("Ton navigateur ne gère pas les notifications.");return}
@@ -1069,7 +1029,7 @@ let plan="year";
 const yearlyOn=()=>!!CFG.stripePaymentLinkYearly;
 function payUrl(){
   const u=new URL(plan==="year"&&yearlyOn()?CFG.stripePaymentLinkYearly:CFG.stripePaymentLink); u.searchParams.set("client_reference_id",myId);
-  if(myEmail&&!myEmail.endsWith(TECH_MAIL))u.searchParams.set("prefilled_email",myEmail); return u.toString();
+  if(myEmail)u.searchParams.set("prefilled_email",myEmail); return u.toString();
 }
 function payBlocker(){
   if(!live)return "Le paiement s'activera quand le site sera relié à son classement en ligne (étapes 1 à 5 du guide).";
@@ -1108,7 +1068,7 @@ function renderPass(){
     pay.setAttribute("aria-disabled",String(!ok)); pay.classList.toggle("off",!ok); pay.href=ok?payUrl():"#";
     msg.className="msg"+(checked&&bl?" bad":"");
     msg.innerHTML=!checked?"Coche les trois cases pour accéder au paiement."
-      :bl==="anon"?`Dernière étape : <a href="#profil">protège ton pseudo avec un mot de passe</a> pour garder ton Pass sur tous tes appareils.`
+      :bl==="anon"?`Dernière étape : <a href="#profil">protège ton compte avec ton e-mail</a> pour garder ton Pass sur tous tes appareils.`
       :bl?esc(bl):"Tout est prêt : clique pour payer sur la page sécurisée de Stripe.";
   };
   ["pc1","pc2","pc3"].forEach(i=>$(i).onchange=sync); sync();
