@@ -115,10 +115,10 @@ const BASE=[
   {id:"dominos",kind:"wur",mode:"count",win:60,unit:"dominos",icon:"domino",name:"Dominos debout en 1 min",desc:"Aligne des dominos debout, à la suite. À la fin, fais-les tomber : seuls ceux qui tombent dans la chaîne comptent."},
   {id:"backalpha",kind:"wur",mode:"time",icon:"alpha",name:"L'alphabet à l'envers, à voix haute",desc:"Récite l'alphabet de Z à A, à voix haute et distinctement. Une lettre oubliée ou inversée : il faut tout recommencer."},
   {id:"puzzle",kind:"wur",mode:"time",icon:"puzzle",name:"Puzzle de 100 pièces",desc:"Montre la boîte et les pièces en vrac au départ. Le chrono s'arrête quand la dernière pièce est posée et le puzzle entier visible."},
-  // ---- défis exclusifs Pass Néon ----
-  {id:"cardhouse",kind:"vip",mode:"time",icon:"cups",name:"Château de cartes 3 étages",desc:"Construis un château de 3 étages avec 15 cartes, sans scotch ni colle. Le chrono s'arrête quand la dernière carte tient 3 secondes."},
-  {id:"bottleflip",kind:"vip",mode:"count",win:60,unit:"flips réussis",icon:"star",name:"Bouteille flip en 1 min",desc:"Fais un flip avec une bouteille d'eau remplie au tiers. Seuls les flips où la bouteille retombe et reste debout comptent."},
-  {id:"onehand",kind:"vip",mode:"time",icon:"cube",name:"Rubik's Cube à une main",desc:"Résous un cube 3×3 mélangé avec une seule main. L'autre main reste derrière le dos pendant toute la résolution."},
+  // ---- anciens défis exclusifs Pass Néon (ouverts à tous) ----
+  {id:"cardhouse",kind:"cam",mode:"time",icon:"cups",name:"Château de cartes 3 étages",desc:"Construis un château de 3 étages avec 15 cartes, sans scotch ni colle. Le chrono s'arrête quand la dernière carte tient 3 secondes."},
+  {id:"bottleflip",kind:"cam",mode:"count",win:60,unit:"flips réussis",icon:"star",name:"Bouteille flip en 1 min",desc:"Fais un flip avec une bouteille d'eau remplie au tiers. Seuls les flips où la bouteille retombe et reste debout comptent."},
+  {id:"onehand",kind:"cam",mode:"time",icon:"cube",name:"Rubik's Cube à une main",desc:"Résous un cube 3×3 mélangé avec une seule main. L'autre main reste derrière le dos pendant toute la résolution."},
   // ---- nouveaux défis navigateur ----
   {id:"mental",kind:"web",mode:"web",better:"high",icon:"calc",name:"Calcul mental 30 s",desc:"Additions, soustractions et multiplications : réponds au plus de calculs possible en 30 secondes.",fmt:v=>v+" bonnes réponses"},
   {id:"stroop",kind:"web",mode:"web",better:"high",icon:"eye",name:"Couleurs piégées",desc:"Clique la couleur de l'encre, pas le mot écrit. 30 secondes, chaque erreur retire un point.",fmt:v=>v+" points"},
@@ -194,10 +194,11 @@ const WEB_IDS=BASE.filter(c=>c.kind==="web").map(c=>c.id);
 /* ================= data layer ================= */
 // attempt in UI: {id, uid, pseudo, c, v, t, vid(url|null), path, code, status: auto|pending|ok|no, hidden}
 let attempts=[], myId=null, isAdmin=false, sb=null, live=false, currentTab="defis", profileUid=null;
-let myProfile=null, myEmail="", isAnon=true, hasPw=false, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false;
+let myProfile=null, myEmail="", isAnon=true, hasPw=false, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false, coins=0, prepaid=null;
+const COIN_PRICE=5;
 const LIMIT=3;
 const parisToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Paris"}).format(new Date());
-const isMember=()=>members.has(myId)||isAdmin;
+const isMember=()=>true; // Pass Néon retiré : ses avantages sont ouverts à tous (sauf les essais illimités)
 const CFG=window.WUR_CONFIG||{};
 const LS="wur_gh_v1";
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
@@ -292,12 +293,13 @@ const DB={
            sb.from("daily_usage").select("challenge,started,saved").eq("user_id",myId).eq("day",parisToday()));
     if(isAdmin)q.push(sb.from("reports").select("attempt_id,reason,created_at").order("created_at",{ascending:false}).limit(1000));
     const [a,c,mi,su,us,r]=await Promise.all(q);
-    if(!mi.error){memberSince={};(mi.data||[]).forEach(x=>memberSince[x.user_id]=Date.parse(x.since)||Date.now());members=new Set(Object.keys(memberSince))}
+    if(!mi.error){memberSince={};(mi.data||[]).forEach(x=>memberSince[x.user_id]=Date.parse(x.since)||Date.now());members=new Set()}
     const pc=await sb.from("profiles").select("user_id,color").not("color","is",null); if(!pc.error){colors={};pc.data.forEach(p=>colors[p.user_id]=p.color)}
     if(myProfile&&myProfile.color)colors[myId]=myProfile.color;
     await loadMyLeagues();
     mySub=su&&!su.error?su.data:null;
     if(us&&!us.error){usage={};(us.data||[]).forEach(u=>usage[u.challenge]=u)}
+    const wa=await sb.from("wallets").select("coins").eq("user_id",myId).maybeSingle(); if(!wa.error){coins=wa.data?+wa.data.coins||0:0} renderCoins();
     if(!a.error)attempts=a.data.map(rowToAttempt);
     if(!c.error)customs=c.data;
     reports=r&&!r.error?r.data:[];
@@ -311,15 +313,17 @@ const DB={
   },
   saveLocal(){lsSet(LS,{attempts,customs,aura:auraPosts.map(p=>({id:p.id,user_id:p.uid,pseudo:p.pseudo,kind:p.kind,parent_id:p.parent,title:p.title,source:p.source,side:p.side,status:p.status,hidden:p.hidden,t:p.t,dec:p.dec,emo:p.emo})),auraVotes,ideas:auraIdeas,ideaVotes:auraIdeaVotes})},
   // consomme un essai officiel (3 par défi et par jour, illimité pour les membres)
-  async startAttempt(cid){
+  async startAttempt(cid,useCoins){
+    if(prepaid===cid){prepaid=null;return {ok:true,remaining:0}}
     if(!live){
       const k="wur_usage_"+parisToday(), u=lsGet(k,{}), n=u[cid]||0;
       if(CHM[cid]&&CHM[cid].kind==="vip")return {ok:false,reason:"vip"};
       if(n>=LIMIT)return {ok:false,reason:"limit"};
       u[cid]=n+1; lsSet(k,u); usage[cid]={started:n+1}; return {ok:true,remaining:LIMIT-n-1};
     }
-    const {data,error}=await sb.rpc("start_attempt",{p_challenge:cid});
+    const {data,error}=await sb.rpc("start_attempt",{p_challenge:cid,p_use_coins:!!useCoins});
     if(error){toast("Impossible de démarrer : "+error.message);return {ok:false,reason:"error"}}
+    if(data&&data.coins!=null){coins=+data.coins||0;renderCoins()}
     if(data&&data.ok)usage[cid]={started:((usage[cid]||{}).started||0)+1};
     return data||{ok:false,reason:"error"};
   },
@@ -345,9 +349,12 @@ const DB={
     if(!(await this.ensureProfile()))return false;
     const pseudo=pseudoIn.value.trim();
     if(!live){attempts.unshift({id:"l"+Date.now(),uid:"local",pseudo,c:o.c,v:o.v,t:Date.now(),vid:o.localUrl||null,code:o.code||"",status:o.status,hidden:false});this.saveLocal();renderAll();return true}
-    const {error}=await sb.from("attempts").insert({pseudo,challenge:o.c,value:o.v,status:o.status,video_path:o.path||null,code:o.code||null,consent_at:o.consent||null});
+    const before=coins;
+    const {error}=await sb.from("attempts").insert({pseudo,challenge:o.c,value:o.v,status:o.status,video_path:o.path||null,code:o.code||null,consent_at:o.consent||null,better:(CHM[o.c]&&CHM[o.c].better)||null});
     if(error){toast("Enregistrement impossible : "+(/row-level security/.test(error.message)?"limite de 40 tentatives par heure atteinte, ou session expirée. Réessaie plus tard.":error.message));return false}
-    track("save",{c:o.c,v:+o.v}); await this.refresh(); return true;
+    track("save",{c:o.c,v:+o.v}); await this.refresh();
+    if(coins>before)toast(`Bravo ! +${coins-before} pièces`);
+    return true;
   },
   async uploadVideo(blob,ext){
     if(!live)return {path:null,localUrl:URL.createObjectURL(blob)};
@@ -592,7 +599,7 @@ function renderGrids(){
   $("gridCam").innerHTML=CH.filter(c=>c.kind==="cam").map(card).join("");
   $("gridWeb").innerHTML=CH.filter(c=>c.kind==="web"&&!(c.batch&&c.batch===LATEST_BATCH)).map(card).join("");
   $("gridWur").innerHTML=CH.filter(c=>c.kind==="wur").map(card).join("");
-  $("gridVip").innerHTML=CH.filter(c=>c.kind==="vip").map(card).join("");
+  const gv=$("gridVip"); if(gv)gv.innerHTML=CH.filter(c=>c.kind==="vip").map(card).join("");
   const cu=CH.filter(c=>c.kind==="custom");
   $("gridCustom").innerHTML=cu.length?cu.map(card).join(""):`<div class="empty" style="grid-column:1/-1">Aucun record créé par la communauté pour l'instant. Utilise « Créer un nouveau record » pour lancer le premier.</div>`;
 }
@@ -600,7 +607,7 @@ let filterC="all";
 function wrBox(c){return c.wr?`<div class="wrbox">Record du monde : <b>${esc(c.fmt(c.wr.v))}</b> · ${esc(c.wr.who)} (${esc(c.wr.where)})${c.wr.when?", "+esc(c.wr.when):""} · <a href="${esc(c.wr.url)}" target="_blank" rel="noopener">${esc(c.wr.src)}</a>${c.wr.video?` · <a href="#" data-watch="${esc(c.id)}">voir la vidéo</a>`:""}</div>`:""}
 function renderRecords(){
   const q=$("q").value.trim().toLowerCase();
-  const chipList=[{id:"all",name:"Tous"},{id:"k:web",name:"Navigateur"},{id:"k:cam",name:"Caméra"},{id:"k:wur",name:"Défis WUR"},{id:"k:vip",name:"Pass Néon"},{id:"k:custom",name:"Communauté"}];
+  const chipList=[{id:"all",name:"Tous"},{id:"k:web",name:"Navigateur"},{id:"k:cam",name:"Caméra"},{id:"k:wur",name:"Défis WUR"},{id:"k:custom",name:"Communauté"}];
   $("chips").innerHTML=chipList.map(c=>`<button class="chip" data-chip="${c.id}" aria-pressed="${filterC===c.id}">${esc(c.name)}</button>`).join("")
     +(filterC.startsWith("c:")?`<button class="chip" data-chip="${esc(filterC)}" aria-pressed="true">${esc((CHM[filterC.slice(2)]||{}).name||"")}</button>`:"");
   const matchC=c=>filterC==="all"||(filterC.startsWith("k:")&&c.kind===filterC.slice(2))||(filterC.startsWith("c:")&&c.id===filterC.slice(2));
@@ -971,7 +978,7 @@ function renderProfile(){
     :`<div class="empty">Pas encore de score validé.</div>`);
   if(!own)html+=auraProfileHtml(uid,false);
   if(own){
-    html+=`<div class="passline">${isMember()?`<span class="mbadge">PASS</span> Membre du Pass Néon · <a href="#membre">gérer</a>`:`Essais limités à ${LIMIT} par défi et par jour · <a href="#membre">Passer au Pass Néon</a>`}</div>`;
+    html+=`<div class="passline coinline"><span class="coin-ic" aria-hidden="true"></span><span>Mes pièces :</span> <b class="num">${coins}</b><span class="msg">Bats des records pour en gagner : +10 pour un record du site, +2 pour ton record perso. Un essai en plus coûte ${COIN_PRICE} pièces.</span></div>`;
     html+=`<h2 style="margin-top:28px">Mes tentatives</h2>`+(mineAll.length?`<div class="tablewrap"><table><thead><tr><th>Quand</th><th>Défi</th><th class="r">Score</th><th>Statut</th><th></th></tr></thead><tbody>
       ${mineAll.map(a=>`<tr><td>${esc(ago(a.t))}</td><td>${esc(CHM[a.c].name)}</td><td class="r num">${esc(CHM[a.c].fmt(a.v))}</td><td>${statusBadge(a)}${a.vid?` <a href="#" data-pvid="${esc(a.id)}">vidéo</a>`:""}</td>
         <td class="acts">${a.vid&&a.status==="ok"?`<button class="btn sm gold" data-short="${esc(a.id)}">Créer mon Short</button>`:""}<button class="btn sm ghost" data-del="${esc(a.id)}">Supprimer</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Aucune tentative.</div>`);
@@ -988,7 +995,7 @@ function renderProfile(){
     else{
       const pseudoNow=myProfile&&myProfile.pseudo;
       const pwForm=lbl=>`<form class="pwform" id="pwForm"><input class="field" id="pw1" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Mot de passe (8 caractères min.)"><input class="field" id="pw2" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Confirme le mot de passe"><button class="btn solid" type="submit">${lbl}</button></form>`;
-      if(hasPw)html+=`<p class="msg good">Ton pseudo « ${esc(pseudoNow||"")} » est protégé par un mot de passe. Sur un autre appareil, connecte-toi ci-dessous avec ton pseudo et ton mot de passe : tu retrouves tous tes records, tes vidéos et ton Pass Néon.</p>
+      if(hasPw)html+=`<p class="msg good">Ton pseudo « ${esc(pseudoNow||"")} » est protégé par un mot de passe. Sur un autre appareil, connecte-toi ci-dessous avec ton pseudo et ton mot de passe : tu retrouves tous tes records, tes vidéos et tes pièces.</p>
         <details class="acctmore"><summary>Changer mon mot de passe</summary>${pwForm("Changer le mot de passe")}</details>`;
       else if(pseudoNow)html+=`<p class="msg">Ajoute un mot de passe à ton pseudo « ${esc(pseudoNow)} » pour garder tes records et les retrouver sur n'importe quel appareil.</p>${pwForm("Protéger mon pseudo")}`;
       else html+=`<p class="msg">Choisis d'abord un pseudo (en haut de la page Défis), puis ajoute-lui un mot de passe pour retrouver tes records partout.</p>`;
@@ -1334,8 +1341,8 @@ async function openShortMaker(a){
 const COLORS={violet:["Violet","#c77dff"],cyan:["Cyan","#5fd0ff"],rose:["Rose","#ff6fb5"],or:["Or","#ffc94a"],vert:["Vert","#5ee6a8"]};
 function seniority(uid){const s=memberSince[uid];if(!s)return {label:"PASS",tier:0};const m=Math.floor((Date.now()-s)/(30.44*864e5));
   return m>=12?{label:"PASS · 1 AN",tier:4}:m>=6?{label:"PASS · 6 MOIS",tier:3}:m>=3?{label:"PASS · 3 MOIS",tier:2}:m>=1?{label:"PASS · 1 MOIS",tier:1}:{label:"PASS",tier:0}}
-function memberBadge(uid){if(!members.has(uid))return"";const s=seniority(uid);return `<span class="mbadge t${s.tier}" title="Membre Pass Néon">${s.label}</span>`}
-function pseudoStyle(uid){const c=members.has(uid)&&colors[uid];return c&&COLORS[c]?` style="color:${COLORS[c][1]};text-shadow:0 0 10px ${COLORS[c][1]}80"`:""}
+function memberBadge(uid){return"";const s=seniority(uid);return `<span class="mbadge t${s.tier}" title="Membre Pass Néon">${s.label}</span>`}
+function pseudoStyle(uid){const c=colors[uid];return c&&COLORS[c]?` style="color:${COLORS[c][1]};text-shadow:0 0 10px ${COLORS[c][1]}80"`:""}
 
 /* ---- statistiques détaillées (graphique de progression) ---- */
 let statCid=null;
@@ -1456,7 +1463,7 @@ function showTab(id){
   if(/^p-[0-9a-f-]{36}$/.test(id)){profileUid=id.slice(2);id="profil"}
   if(/^c-[a-z0-9-]{2,60}$/.test(id)){rankCid=id.slice(2);id="classement";renderRanking()}
   if(/^l-[A-Za-z0-9]{6}$/.test(id)){leagueCode=id.slice(2).toUpperCase();id="ligue";renderLeague()}
-  if(!["defis","records","aura","shorts","profil","legal","membre","classement","ligue"].includes(id))id="defis";
+  if(!["defis","records","aura","shorts","profil","legal","classement","ligue"].includes(id))id="defis";
   if(id==="aura")renderAura();
   if(id==="membre")renderPass();
   if(id==="profil")renderProfile();
@@ -1583,17 +1590,23 @@ function openArena(cid){
 }
 function closeArena(){clearGame();arena.hidden=true;document.body.style.overflow=""}
 $("arenaClose").onclick=closeArena;
-function remaining(cid){return isMember()?Infinity:Math.max(0,LIMIT-((usage[cid]||{}).started||0))}
-function remainingText(cid){const r=remaining(cid);return r===Infinity?"Essais illimités (Pass Néon)":`Essais officiels restants aujourd'hui : ${r}/${LIMIT}`}
+function remaining(cid){return isAdmin?Infinity:Math.max(0,LIMIT-((usage[cid]||{}).started||0))}
+function renderCoins(){const el=$("coinCount");if(el)el.textContent=String(coins);const p=$("coinPill");if(p)p.hidden=!live}
+function remainingText(cid){const r=remaining(cid);return r===Infinity?"Essais illimités (administrateur)":`Essais officiels restants aujourd'hui : ${r}/${LIMIT}`}
 function showLimit(c,reason){
   clearGame(); track("limit",{c:c.id});
-  stage.innerHTML=reason==="vip"
-    ?`<div class="result"><span class="eyebrow">Défi exclusif</span><h2>Réservé aux membres du Pass Néon</h2>
-       <p class="hint">${esc(c.desc)}</p><div class="row"><a class="btn solid gold" href="#membre" data-close="1">Découvrir le Pass Néon</a></div></div>`
-    :`<div class="result"><span class="eyebrow">Plus d'essais aujourd'hui</span><h2>Tu as utilisé tes ${LIMIT} essais sur « ${esc(c.name)} »</h2>
-       <p class="hint">Tes essais reviennent demain à minuit. Tu peux tenter un autre défi${c.kind==="web"?", t'entraîner sans enregistrer":""}, ou passer au Pass Néon pour des essais illimités.</p>
-       <div class="row">${c.kind==="web"?`<button class="btn" id="pracBtn">S'entraîner sans enregistrer</button>`:""}<a class="btn solid gold" href="#membre" data-close="1">Essais illimités avec le Pass Néon</a></div></div>`;
+  const web=c.kind==="web", can=coins>=COIN_PRICE;
+  stage.innerHTML=`<div class="result"><span class="eyebrow">Plus d'essais aujourd'hui</span><h2>Tu as utilisé tes ${LIMIT} essais sur « ${esc(c.name)} »</h2>
+     <p class="hint">Tes essais gratuits reviennent demain à minuit. Avec tes pièces, tu peux rejouer tout de suite.</p>
+     <p class="coinline big"><span class="coin-ic" aria-hidden="true"></span><span>Mes pièces :</span> <b class="num">${coins}</b></p>
+     ${can?"":`<p class="msg">Il te faut ${COIN_PRICE} pièces pour un essai en plus. Bats des records pour en gagner : +10 pour un record du site, +2 pour ton record perso.</p>`}
+     <div class="row">${can?`<button class="btn solid gold" id="buyBtn">1 essai en plus · ${COIN_PRICE} pièces</button>`:""}${web?`<button class="btn" id="pracBtn">S'entraîner sans enregistrer</button>`:""}</div></div>`;
   const pb=$("pracBtn"); if(pb)pb.onclick=()=>{practice=true;introSkip=true;GAMES[c.game||c.id](c)};
+  const bb=$("buyBtn"); if(bb)bb.onclick=async()=>{bb.disabled=true;
+    const r=await DB.startAttempt(c.id,true);
+    if(!r.ok){if(r.reason==="coins"){toast("Pas assez de pièces.");showLimit(c,"limit")}else bb.disabled=false;return}
+    prepaid=c.id; toast(`Essai acheté : il te reste ${coins} pièces`);
+    if(web)GAMES[c.game||c.id](c); else camIntro(c)};
 }
 function intro(c,startLabel,onStart){
   if(introSkip){introSkip=false;return onStart()}

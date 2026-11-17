@@ -28,7 +28,7 @@
       <a href="#profil" data-tab="profil">Profil</a>
     </nav>
     <div class="top-actions">
-      <a class="btn sm solid gold passbtn" href="#membre">S'abonner</a>
+      <a class="coinpill" id="coinPill" href="#profil" title="Mes pièces" hidden><span class="coin-ic" aria-hidden="true"></span><b id="coinCount" class="num">0</b></a>
       <a class="btn sm subscribe" id="subBtn" href="#" target="_blank" rel="noopener" hidden>S'abonner</a>
       <button class="bellbtn" id="bell" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="notifPanel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg><span class="bcount" id="bellCount" hidden>0</span></button>
       <div class="notif-panel" id="notifPanel" hidden><p class="eyebrow" style="padding:10px 12px 0">Notifications</p><div id="notifList"></div></div>
@@ -49,10 +49,7 @@
       <span class="note" id="syncNote">Ton pseudo apparaît à côté de tes scores dans les classements.</span>
     </div>
 
-    <a class="passcta" id="passCta" href="#membre">
-      <span><b>Pass Néon</b> · essais illimités, badge PASS doré, défis exclusifs</span>
-      <span class="btn solid gold sm"><span data-cfg="price">2,99 €</span>&nbsp;/ mois · S'abonner</span>
-    </a>
+    <div class="coinsinfo"><span class="coin-ic" aria-hidden="true"></span><p><b>Gagne des pièces en battant des records</b><span>+10 pièces quand tu bats un record du site, +2 quand tu bats ton record perso. Utilise-les pour rejouer : un essai en plus coûte 5 pièces.</span></p></div>
 
     <div class="sec-head"><div><h2>Les 10 nouveaux défis de la semaine</h2><p id="weekLeft"></p></div></div>
     <div class="grid" id="weekly"></div>
@@ -74,9 +71,6 @@
 
     <div class="sec-head"><div><h2>Les défis WorldUltimateRecords</h2><p>Nos records maison, sans record du monde officiel : le premier score validé devient la référence à battre.</p></div></div>
     <div class="grid" id="gridWur"></div>
-
-    <div class="sec-head"><div><h2>Défis exclusifs Pass Néon</h2><p>Réservés aux membres du Pass Néon.</p></div><a class="btn gold" href="#membre">Découvrir le Pass Néon</a></div>
-    <div class="grid" id="gridVip"></div>
 
     <div class="sec-head"><div><h2>Records de la communauté</h2><p>Des défis inventés par les joueurs. Crée le tien : tu en deviens le premier recordman dès ta première tentative validée.</p></div>
       <button class="btn solid" id="openCreate" aria-expanded="false" aria-controls="createForm">Créer un nouveau record</button></div>
@@ -168,25 +162,6 @@
     <div id="leagueBox"></div>
   </section>
 
-  <section id="membre" class="view" hidden>
-    <p class="eyebrow">Abonnement</p>
-    <h1>Pass Néon</h1>
-    <p class="lede"><b class="price" data-cfg="price">2,99 €</b> par mois sans engagement, ou <b class="price" data-cfg="priceY">24,99 €</b> par an. Sans abonnement, chaque joueur a 3 essais officiels par défi et par jour.</p>
-    <ul class="perks">
-      <li><b>Essais illimités</b><span>Au lieu de 3 par défi et par jour.</span></li>
-      <li><b>Badge PASS doré</b><span>À côté de ton pseudo, partout sur le site.</span></li>
-      <li><b>Vidéos vérifiées en priorité</b><span>Tes tentatives passent en tête de la file de vérification.</span></li>
-      <li><b>Défis exclusifs</b><span>Château de cartes, bouteille flip, Rubik's Cube à une main.</span></li>
-      <li><b>En tête des Shorts</b><span>Tes vidéos sont mises en avant dans le fil Shorts.</span></li>
-      <li><b>30 records créés</b><span>Au lieu de 5 sans abonnement.</span></li>
-      <li><b>Pseudo en couleur</b><span>Violet, cyan, rose, or ou vert, visible partout sur le site.</span></li>
-      <li><b>Statistiques détaillées</b><span>Courbe de progression, meilleur score du mois, écart avec le 1er et avec le record du monde.</span></li>
-      <li><b>Ligues privées</b><span>Crée jusqu'à 5 classements entre amis, en classe ou en famille. Tes invités les rejoignent gratuitement.</span></li>
-      <li><b>Badge d'ancienneté</b><span>Ton badge évolue : 1 mois, 3 mois, 6 mois, puis 1 an.</span></li>
-    </ul>
-    <div class="passbox" id="passBox"></div>
-  </section>
-
   <section id="legal" class="view legal" hidden>
     <p class="eyebrow">Informations</p>
     <h1>Mentions légales et confidentialité</h1>
@@ -201,23 +176,16 @@
       <li><b>Les vidéos de tes tentatives</b>, uniquement si tu les envoies. Elles sont publiques une fois envoyées, et vérifiées par l'administrateur.</li>
       <li><b>Ton adresse e-mail</b>, uniquement si tu choisis de protéger ton compte. Elle n'est jamais affichée ni transmise.</li>
       <li><b>Tes signalements</b>, visibles seulement par toi et l'administrateur.</li>
-      <li><b>Ton abonnement Pass Néon</b>, si tu en prends un : son statut et sa date de fin. Le paiement est géré par Stripe, qui conserve seul tes données bancaires.</li>
+      <li><b>Tes pièces</b> : leur nombre et l'historique de ce qui t'en a fait gagner ou dépenser. Ce sont des pièces de jeu, sans valeur en argent.</li>
+      <li><b>Des statistiques de visite anonymes</b> : pages ouvertes, parties jouées, type d'appareil et site d'origine, pour améliorer le jeu. Elles ne sont ni vendues, ni utilisées pour de la publicité.</li>
     </ul>
-    <p>Ces données servent uniquement à faire fonctionner le site et l'abonnement. Elles ne sont ni vendues, ni utilisées pour de la publicité. Elles sont conservées jusqu'à ce que tu les supprimes, ou jusqu'à leur suppression par l'administrateur.</p>
+    <p>Ces données servent uniquement à faire fonctionner et à améliorer le site. Elles ne sont ni vendues, ni utilisées pour de la publicité. Elles sont conservées jusqu'à ce que tu les supprimes, ou jusqu'à leur suppression par l'administrateur.</p>
     <h2>Mineurs</h2>
     <p>En France, un mineur de moins de 15 ans ne peut publier une vidéo de lui qu'avec l'accord d'un parent. Avant chaque envoi, tu dois confirmer avoir 15 ans ou plus, ou l'accord d'un parent. Un parent peut demander la suppression d'une vidéo à tout moment à l'adresse de contact : elle est supprimée sans justificatif.</p>
     <h2>Tes droits</h2>
     <p>Tu peux consulter, modifier ou supprimer tes données à tout moment depuis <a href="#profil">ton profil</a> (bouton « Supprimer mon compte »). Pour toute autre demande (accès, rectification, opposition), écris à l'adresse de contact. Si tu n'obtiens pas de réponse, tu peux saisir la CNIL (cnil.fr).</p>
     <h2>Cookies et stockage</h2>
-    <p>Le site n'utilise aucun cookie publicitaire ni de mesure d'audience. Il enregistre dans ton navigateur ta session et ton pseudo, nécessaires au fonctionnement. Les vidéos YouTube et TikTok ne se chargent que si tu cliques dessus ; ces services peuvent alors déposer leurs propres cookies. La vérification anti-robot est assurée par Cloudflare Turnstile.</p>
-    <h2 id="cgv">Conditions de l'abonnement Pass Néon</h2>
-    <p><b>Prix et paiement.</b> Le Pass Néon coûte <b data-cfg="price"></b> TTC par mois<span data-cfg="tva"></span>. Le paiement est traité par Stripe ; WorldUltimateRecords n'a jamais accès à tes données bancaires.</p>
-    <p><b>Durée et résiliation.</b> L'abonnement est mensuel et se renouvelle automatiquement. Tu peux le résilier à tout moment depuis la page Pass Néon (« Gérer ou résilier mon abonnement ») : il reste actif jusqu'à la fin du mois déjà payé, sans remboursement du mois en cours.</p>
-    <p><b>Droit de rétractation.</b> Le Pass donne accès à un service numérique immédiatement. Conformément à l'article L221-28 du Code de la consommation, en demandant cet accès immédiat et en le confirmant avant le paiement, tu renonces à ton droit de rétractation de 14 jours.</p>
-    <p><b>Mineurs.</b> Si tu as moins de 18 ans, l'abonnement doit être payé et accepté par un parent.</p>
-    <p><b>Ce que le Pass ne garantit pas.</b> Les avantages concernent l'utilisation du site. Ils ne donnent aucun avantage dans la vérification elle-même : une vidéo d'abonné est examinée plus tôt, avec les mêmes règles que les autres.</p>
-    <p><b>Réclamations.</b> Écris d'abord à l'adresse de contact. En cas de litige non résolu, tu peux recourir gratuitement au médiateur de la consommation : <b data-cfg="mediator"></b>.</p>
-
+    <p>Le site n'utilise aucun cookie publicitaire. Il compte ses visites et ses parties de façon anonyme, sans outil extérieur. Il enregistre dans ton navigateur ta session et ton pseudo, nécessaires au fonctionnement. Les vidéos YouTube et TikTok ne se chargent que si tu cliques dessus ; ces services peuvent alors déposer leurs propres cookies. La vérification anti-robot est assurée par Cloudflare Turnstile.</p>
     <h2>Sécurité des défis</h2>
     <p>Les défis sont conçus pour être faits chez soi sans danger. Prépare un espace dégagé, arrête-toi en cas de douleur et ne prends aucun risque pour un record. Les records du monde cités appartiennent à leurs détenteurs et organismes (Guinness World Records, WCA, WSSA) ; WorldUltimateRecords n'est affilié à aucun d'eux.</p>
   </section>

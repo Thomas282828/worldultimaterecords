@@ -492,3 +492,22 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .sumcell.sel{border-color:var(--gold);box-shadow:0 0 16px rgba(255,201,74,.6);color:var(--gold)}
 .mega.pop{animation:pop .25s ease-out}
 @keyframes pop{from{transform:scale(1.25);opacity:.4}to{transform:scale(1);opacity:1}}
+
+/* ---- pièces (monnaie du jeu) ---- */
+.coin-ic{display:inline-block;width:18px;height:18px;flex:none;border-radius:50%;vertical-align:-3px;
+  background:radial-gradient(circle at 35% 30%,#fff3c4 0 18%,#ffd45a 36%,#e09a12 78%,#b06f00 100%);
+  box-shadow:inset 0 0 0 2px rgba(255,236,170,.55),0 0 10px rgba(255,201,74,.55)}
+.coinpill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 6px;border-radius:999px;border:1px solid rgba(255,201,74,.45);
+  background:rgba(255,201,74,.08);color:var(--gold);text-decoration:none;font-weight:700;font-size:14px;white-space:nowrap}
+.coinpill:hover{box-shadow:0 0 16px rgba(255,201,74,.35)}
+.coinsinfo{display:flex;align-items:center;gap:12px;margin-top:16px;padding:12px 16px;border-radius:14px;
+  border:1px solid rgba(255,201,74,.45);background:linear-gradient(90deg,rgba(255,201,74,.12),rgba(176,76,255,.08))}
+.coinsinfo .coin-ic{width:30px;height:30px}
+.coinsinfo p{margin:0;display:flex;flex-direction:column;gap:2px}
+.coinsinfo b{color:var(--gold)}
+.coinsinfo span{color:var(--muted);font-size:14px}
+.coinline{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.coinline b.num{color:var(--gold);font-size:18px}
+.coinline .msg{flex-basis:100%;margin:0}
+.coinline.big{justify-content:center;font-size:16px}
+.coinline.big b.num{font-size:24px}

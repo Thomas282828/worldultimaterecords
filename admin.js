@@ -142,7 +142,11 @@ function ideas(d,games){
     if(rp!=null)add("🔁",`${rp} % des visiteurs sont revenus un autre jour`,rp<20?"C'est le chiffre le plus important pour que le jeu devienne une habitude. Idées : un « défi du jour », une série de jours d'affilée, et annoncer les nouveaux défis chaque semaine sur ta chaîne.":"Bonne fidélité ! Continue à sortir de nouveaux défis chaque semaine pour garder l'envie de revenir.");
   }
   const lim=games.reduce((s,g)=>s+(g.limits||0),0);
-  if(lim>=3)add("⛔",`${N(lim)} fois, un joueur a atteint la limite de 3 essais par jour`,"Ces joueurs voulaient continuer à jouer. Comme tu ne veux plus de paiement, supprimer cette limite les ferait jouer plus longtemps.");
+  const T=d.totals||{};
+  if(lim>=3){const b=T.attempts_bought||0;
+    add("⛔",`${N(lim)} fois, un joueur a atteint la limite de 3 essais par jour`,b>=lim/2
+      ?`Et ${N(b)} essais ont été achetés avec des pièces : les joueurs veulent rejouer et les pièces marchent bien.`
+      :`Seulement ${N(b)} essais achetés avec des pièces. Les joueurs n'en ont peut-être pas assez : tu pourrais baisser le prix d'un essai (5 pièces) ou donner plus de pièces par record.`)}
   const tops=games.filter(g=>g.players>=3).sort((a,b)=>b.replayRate-a.replayRate);
   if(tops[0])add("🔥",`Le jeu le plus addictif : ${esc(gname(tops[0].id))}`,`${tops[0].replayRate} % de ses joueurs y rejouent. Mets-le en avant dans tes vidéos et crée des défis du même style.`);
   const weak=games.filter(g=>g.opens>=10&&g.plays/g.opens<.4).sort((a,b)=>a.plays/a.opens-b.plays/b.opens)[0];
@@ -253,6 +257,14 @@ function render(){
       ${barChart((d.weekdays||[]).map(x=>({label:DAYS[x.d].slice(0,3)+".",v:x.n,tip:`${DAYS[x.d]} : <b>${N(x.n)}</b> parties`})),{title:"Parties par jour de la semaine",labels:7,h:180,w:520})}</div>
   </section>
 
+  <section class="card"><h2>Les pièces</h2><p class="sub">Sur les ${days} derniers jours : +10 pièces pour un record du site battu, +2 pour un record perso, 5 pièces l'essai en plus</p>
+    <div class="grid kpis" style="margin:0">
+      ${tile("Records du site battus",N(d.totals.site_records_beaten))}
+      ${tile("Records perso battus",N(d.totals.personal_records_beaten))}
+      ${tile("Pièces gagnées",N(d.totals.coins_earned_period),`${N(d.totals.coins_earned)} depuis le début`)}
+      ${tile("Essais achetés",N(d.totals.attempts_bought),`par ${N(d.totals.buyers)} joueurs`)}
+    </div></section>
+
   <section class="grid two">
     <div class="card"><h2>Les joueurs les plus accros</h2><p class="sub">Sur les ${days} derniers jours</p>
       ${table("top",[
@@ -319,7 +331,8 @@ function demoData(){
     kpi:{today:{visitors:daily.at(-1).visitors,new:daily.at(-1).new,plays:daily.at(-1).plays,players:40},yesterday:{visitors:daily.at(-2)?.visitors||0},
       week:{visitors:wk,new:Math.round(wk*.4),plays:wk*3,players:Math.round(wk*.7)},prev_week:{visitors:Math.round(wk*.86),new:Math.round(wk*.33),plays:Math.round(wk*2.6),players:Math.round(wk*.6)},
       period:{visitors:wk*3,new:wk*2,plays:wk*10,players:wk*2,shares:12,limits:85},dau_mau:14.2,days_per_user:1.9,plays_per_player_day:4.3},
-    totals:{visitors_all_time:2140,accounts:2300,accounts_with_password:96,pseudos:640,attempts:5120,aura_posts:58,leagues:12,custom_challenges:31},
+    totals:{visitors_all_time:2140,accounts:2300,accounts_with_password:96,pseudos:640,attempts:5120,aura_posts:58,leagues:12,custom_challenges:31,
+      coins_earned:4210,coins_earned_period:1830,site_records_beaten:64,personal_records_beaten:595,attempts_bought:210,buyers:73},
     daily,games,usage:[],attempts_by_game:[],
     tabs:[{id:"defis",users:900},{id:"records",users:310},{id:"classement",users:260},{id:"aura",users:180},{id:"profil",users:150},{id:"shorts",users:90},{id:"ligue",users:40},{id:"membre",users:25}],
     funnel:{visitors:1300,opened:1010,played:820,saved:350,pseudo:300,returned:260},retention:ret,
