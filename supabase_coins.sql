@@ -6,6 +6,7 @@
 --  Règles :
 --   - battre le record du site détenu par un autre joueur : +10 pièces
 --   - battre son propre record personnel : +2 pièces
+--   - créateur d'un record de la communauté : +1 pièce chaque fois qu'un autre joueur y bat un record
 --   - 3 essais officiels gratuits par défi et par jour ; ensuite 1 essai = 5 pièces
 --   - le Pass Néon est retiré : ses avantages (couleurs, ligues, défis exclusifs,
 --     statistiques) deviennent gratuits pour tous, sauf les essais illimités.
@@ -40,6 +41,8 @@ create table if not exists public.coin_log (
   created_at timestamptz not null default now()
 );
 create index if not exists coin_log_user_idx on public.coin_log (user_id, created_at desc);
+alter table public.coin_log drop constraint if exists coin_log_reason_check;
+alter table public.coin_log add constraint coin_log_reason_check check (reason in ('record_site','record_perso','essai','createur'));
 alter table public.coin_log enable row level security;
 drop policy if exists "coin_log: lecture de son historique" on public.coin_log;
 create policy "coin_log: lecture de son historique" on public.coin_log
@@ -73,7 +76,7 @@ alter table public.attempts add column if not exists better text check (better i
 create or replace function public.attempt_award() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
-  dir text; own_best double precision; others_best double precision; gain int := 0; why text;
+  dir text; own_best double precision; others_best double precision; gain int := 0; why text; creator uuid;
 begin
   if new.hidden or new.status not in ('auto','ok') then return new; end if;
   if tg_op = 'UPDATE' and old.status in ('auto','ok') then return new; end if;
@@ -109,6 +112,13 @@ begin
     insert into public.wallets (user_id, coins, earned) values (new.user_id, gain, gain)
     on conflict (user_id) do update set coins = public.wallets.coins + gain, earned = public.wallets.earned + gain, updated_at = now();
     insert into public.coin_log (user_id, delta, reason, challenge, attempt_id) values (new.user_id, gain, why, new.challenge, new.id);
+    -- le créateur d'un record de la communauté gagne 1 pièce à chaque record battu sur son défi
+    select user_id into creator from public.challenges where id = new.challenge;
+    if creator is not null and creator <> new.user_id then
+      insert into public.wallets (user_id, coins, earned) values (creator, 1, 1)
+      on conflict (user_id) do update set coins = public.wallets.coins + 1, earned = public.wallets.earned + 1, updated_at = now();
+      insert into public.coin_log (user_id, delta, reason, challenge, attempt_id) values (creator, 1, 'createur', new.challenge, new.id);
+    end if;
   end if;
   return new;
 end $$;

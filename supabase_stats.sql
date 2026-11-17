@@ -8,7 +8,7 @@
 create table if not exists public.events (
   id         bigint generated always as identity primary key,
   user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  kind       text not null check (kind in ('visit','tab','open','start','finish','save','share','limit')),
+  kind       text not null,
   challenge  text check (challenge is null or char_length(challenge) <= 60),
   value      double precision,
   practice   boolean not null default false,
@@ -17,6 +17,9 @@ create table if not exists public.events (
   device     text check (device is null or device in ('mobile','tablet','desktop')),
   created_at timestamptz not null default now()
 );
+alter table public.events drop constraint if exists events_kind_check;
+alter table public.events add constraint events_kind_check
+  check (kind in ('visit','tab','open','start','finish','save','share','limit','comment'));
 create index if not exists events_created_idx on public.events (created_at desc);
 create index if not exists events_user_idx on public.events (user_id, created_at desc);
 alter table public.events enable row level security;
@@ -156,7 +159,12 @@ begin
       'site_records_beaten', (select count(*) from public.coin_log where reason = 'record_site' and (created_at at time zone 'Europe/Paris')::date >= d0),
       'personal_records_beaten', (select count(*) from public.coin_log where reason = 'record_perso' and (created_at at time zone 'Europe/Paris')::date >= d0),
       'attempts_bought', (select count(*) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0),
-      'buyers', (select count(distinct user_id) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0)
+      'buyers', (select count(distinct user_id) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'creator_coins', (select coalesce(sum(delta), 0) from public.coin_log where reason = 'createur' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'comments', (select count(*) from public.comments),
+      'comments_period', (select count(*) from public.comments where (created_at at time zone 'Europe/Paris')::date >= d0),
+      'commenters_period', (select count(distinct user_id) from public.comments where (created_at at time zone 'Europe/Paris')::date >= d0),
+      'challenges_created_period', (select count(*) from public.challenges where (created_at at time zone 'Europe/Paris')::date >= d0)
     ),
 
     'daily', (select coalesce(json_agg(json_build_object(

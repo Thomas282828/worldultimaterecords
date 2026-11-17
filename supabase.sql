@@ -759,7 +759,7 @@ on conflict do nothing;
 create table if not exists public.events (
   id         bigint generated always as identity primary key,
   user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  kind       text not null check (kind in ('visit','tab','open','start','finish','save','share','limit')),
+  kind       text not null,
   challenge  text check (challenge is null or char_length(challenge) <= 60),
   value      double precision,
   practice   boolean not null default false,
@@ -768,6 +768,9 @@ create table if not exists public.events (
   device     text check (device is null or device in ('mobile','tablet','desktop')),
   created_at timestamptz not null default now()
 );
+alter table public.events drop constraint if exists events_kind_check;
+alter table public.events add constraint events_kind_check
+  check (kind in ('visit','tab','open','start','finish','save','share','limit','comment'));
 create index if not exists events_created_idx on public.events (created_at desc);
 create index if not exists events_user_idx on public.events (user_id, created_at desc);
 alter table public.events enable row level security;
@@ -907,7 +910,12 @@ begin
       'site_records_beaten', (select count(*) from public.coin_log where reason = 'record_site' and (created_at at time zone 'Europe/Paris')::date >= d0),
       'personal_records_beaten', (select count(*) from public.coin_log where reason = 'record_perso' and (created_at at time zone 'Europe/Paris')::date >= d0),
       'attempts_bought', (select count(*) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0),
-      'buyers', (select count(distinct user_id) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0)
+      'buyers', (select count(distinct user_id) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'creator_coins', (select coalesce(sum(delta), 0) from public.coin_log where reason = 'createur' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'comments', (select count(*) from public.comments),
+      'comments_period', (select count(*) from public.comments where (created_at at time zone 'Europe/Paris')::date >= d0),
+      'commenters_period', (select count(distinct user_id) from public.comments where (created_at at time zone 'Europe/Paris')::date >= d0),
+      'challenges_created_period', (select count(*) from public.challenges where (created_at at time zone 'Europe/Paris')::date >= d0)
     ),
 
     'daily', (select coalesce(json_agg(json_build_object(
@@ -1044,6 +1052,8 @@ create table if not exists public.coin_log (
   created_at timestamptz not null default now()
 );
 create index if not exists coin_log_user_idx on public.coin_log (user_id, created_at desc);
+alter table public.coin_log drop constraint if exists coin_log_reason_check;
+alter table public.coin_log add constraint coin_log_reason_check check (reason in ('record_site','record_perso','essai','createur'));
 alter table public.coin_log enable row level security;
 drop policy if exists "coin_log: lecture de son historique" on public.coin_log;
 create policy "coin_log: lecture de son historique" on public.coin_log
@@ -1077,7 +1087,7 @@ alter table public.attempts add column if not exists better text check (better i
 create or replace function public.attempt_award() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
-  dir text; own_best double precision; others_best double precision; gain int := 0; why text;
+  dir text; own_best double precision; others_best double precision; gain int := 0; why text; creator uuid;
 begin
   if new.hidden or new.status not in ('auto','ok') then return new; end if;
   if tg_op = 'UPDATE' and old.status in ('auto','ok') then return new; end if;
@@ -1113,6 +1123,13 @@ begin
     insert into public.wallets (user_id, coins, earned) values (new.user_id, gain, gain)
     on conflict (user_id) do update set coins = public.wallets.coins + gain, earned = public.wallets.earned + gain, updated_at = now();
     insert into public.coin_log (user_id, delta, reason, challenge, attempt_id) values (new.user_id, gain, why, new.challenge, new.id);
+    -- le créateur d'un record de la communauté gagne 1 pièce à chaque record battu sur son défi
+    select user_id into creator from public.challenges where id = new.challenge;
+    if creator is not null and creator <> new.user_id then
+      insert into public.wallets (user_id, coins, earned) values (creator, 1, 1)
+      on conflict (user_id) do update set coins = public.wallets.coins + 1, earned = public.wallets.earned + 1, updated_at = now();
+      insert into public.coin_log (user_id, delta, reason, challenge, attempt_id) values (creator, 1, 'createur', new.challenge, new.id);
+    end if;
   end if;
   return new;
 end $$;
@@ -1154,6 +1171,72 @@ revoke all on function public.start_attempt(text, boolean) from public;
 grant execute on function public.start_attempt(text, boolean) to authenticated;
 
 notify pgrst, 'reload schema';
+
+-- 13) Commentaires ------------------------------------------------------------
+create table if not exists public.comments (
+  id         uuid primary key default gen_random_uuid(),
+  challenge  text not null check (char_length(challenge) between 1 and 60),
+  user_id    uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  pseudo     text not null default 'Anonyme' check (char_length(pseudo) between 1 and 24),
+  body       text not null check (char_length(btrim(body)) between 1 and 400),
+  created_at timestamptz not null default now()
+);
+create index if not exists comments_challenge_idx on public.comments (challenge, created_at desc);
+create index if not exists comments_user_idx on public.comments (user_id, created_at desc);
+alter table public.comments enable row level security;
+
+drop policy if exists "comments: lecture publique" on public.comments;
+create policy "comments: lecture publique" on public.comments for select using (true);
+
+-- Écrire : avec un pseudo, 5 commentaires par 10 minutes et 40 par jour maximum
+drop policy if exists "comments: écrire" on public.comments;
+create policy "comments: écrire" on public.comments
+  for insert to authenticated with check (
+    user_id = auth.uid()
+    and exists (select 1 from public.profiles p where p.user_id = auth.uid())
+    and (select count(*) from public.comments c where c.user_id = auth.uid() and c.created_at > now() - interval '10 minutes') < 5
+    and (select count(*) from public.comments c where c.user_id = auth.uid() and c.created_at > now() - interval '1 day') < 40
+  );
+
+drop policy if exists "comments: suppression par l'auteur ou l'admin" on public.comments;
+create policy "comments: suppression par l'auteur ou l'admin" on public.comments
+  for delete to authenticated using (user_id = auth.uid() or public.is_admin());
+
+-- Le pseudo affiché est toujours celui du profil ; la date est celle du serveur
+create or replace function public.comment_before_insert() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare p text;
+begin
+  select pseudo into p from public.profiles where user_id = new.user_id;
+  if p is null then
+    raise exception 'Choisis un pseudo avant de commenter.' using errcode = 'P0001';
+  end if;
+  new.pseudo := p;
+  new.body := btrim(new.body);
+  new.created_at := now();
+  return new;
+end $$;
+drop trigger if exists comments_before_insert on public.comments;
+create trigger comments_before_insert before insert on public.comments
+  for each row execute function public.comment_before_insert();
+
+-- Quand un joueur change de pseudo, ses commentaires suivent
+create or replace function public.comment_rename() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.pseudo is distinct from old.pseudo then
+    update public.comments set pseudo = new.pseudo where user_id = new.user_id;
+  end if;
+  return new;
+end $$;
+drop trigger if exists profiles_comment_rename on public.profiles;
+create trigger profiles_comment_rename after update on public.profiles
+  for each row execute function public.comment_rename();
+
+-- Nouveaux commentaires visibles en direct
+do $$ begin
+  begin alter publication supabase_realtime add table public.comments; exception when duplicate_object then null; end;
+end $$;
 
 -- =====================================================================
 --  10) UNE SEULE FOIS, après avoir créé ton compte admin (guide, étape 4) :
