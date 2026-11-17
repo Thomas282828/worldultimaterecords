@@ -263,7 +263,16 @@ function render(){
       ${tile("Records perso battus",N(d.totals.personal_records_beaten))}
       ${tile("Pièces gagnées",N(d.totals.coins_earned_period),`${N(d.totals.coins_earned)} depuis le début`)}
       ${tile("Essais achetés",N(d.totals.attempts_bought),`par ${N(d.totals.buyers)} joueurs`)}
+      ${tile("Pièces des créateurs",N(d.totals.creator_coins),"+1 par record battu sur un défi créé par un joueur")}
     </div></section>
+
+  <section class="card"><h2>Commentaires</h2><p class="sub">Sur les ${days} derniers jours. Supprime ici les commentaires méchants ou insultants.</p>
+    <div class="grid kpis" style="margin:0 0 14px">
+      ${tile("Commentaires",N(d.totals.comments_period),`${N(d.totals.comments)} depuis le début`)}
+      ${tile("Joueurs qui commentent",N(d.totals.commenters_period))}
+      ${tile("Défis créés par les joueurs",N(d.totals.challenges_created_period),`${N(d.totals.custom_challenges)} depuis le début`)}
+    </div>
+    <div id="admCmts"><p class="msg">Chargement des derniers commentaires…</p></div></section>
 
   <section class="grid two">
     <div class="card"><h2>Les joueurs les plus accros</h2><p class="sub">Sur les ${days} derniers jours</p>
@@ -291,6 +300,28 @@ function render(){
   document.querySelectorAll("[data-days]").forEach(b=>b.onclick=()=>{days=+b.dataset.days;lsSet("wur_admin_days",days);if(DEMO){data=demoData();render()}else load()});
   $("refresh").onclick=()=>DEMO?render():load();
   const lo=$("logout"); if(lo)lo.onclick=logout;
+  loadAdminComments();
+}
+
+/* ---------- modération des commentaires ---------- */
+async function loadAdminComments(){
+  const box=$("admCmts"); if(!box)return;
+  let rows=[];
+  if(DEMO){const ids=Object.keys(names);rows=[["NeoBlast","Trop dur ce défi 😅 mais je vais y arriver !"],["Zykra","Quelqu'un a une astuce pour passer les 30 ?"],["LunaPix","Record battu, merci pour ce jeu !"]]
+    .map((r,i)=>({id:"demo"+i,challenge:ids[i*3]||"n-juggle",pseudo:r[0],body:r[1],created_at:new Date(Date.now()-i*3600e3).toISOString()}))}
+  else{const {data,error}=await sb.from("comments").select("id,challenge,pseudo,body,created_at").order("created_at",{ascending:false}).limit(40);
+    if(error){box.innerHTML=`<p class="msg">Commentaires indisponibles : ${esc(error.message)}</p>`;return} rows=data||[]}
+  box.innerHTML=rows.length?`<div class="tablewrap"><table><thead><tr><th>Quand</th><th>Jeu</th><th>Pseudo</th><th>Commentaire</th><th></th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(new Date(r.created_at).toLocaleString("fr-FR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}</td>
+      <td><a href="./#c-${esc(r.challenge)}" target="_blank" rel="noopener">${esc(gname(r.challenge))}</a></td><td>${esc(r.pseudo)}</td>
+      <td style="white-space:normal;min-width:220px">${esc(r.body)}</td><td><button class="btn" data-delcmt="${esc(r.id)}">Supprimer</button></td></tr>`).join("")}
+    </tbody></table></div>`:`<p class="empty">Aucun commentaire pour l'instant.</p>`;
+  box.querySelectorAll("[data-delcmt]").forEach(b=>b.onclick=async()=>{
+    b.disabled=true; if(DEMO){b.closest("tr").remove();return}
+    const {error}=await sb.from("comments").delete().eq("id",b.dataset.delcmt);
+    if(error){b.disabled=false;alert("Suppression impossible : "+error.message);return}
+    b.closest("tr").remove();
+  });
 }
 function funnel(f){
   const steps=[["Visiteurs","visitors"],["Ont ouvert un jeu","opened"],["Ont fini une partie","played"],["Ont enregistré un score","saved"],["Ont un pseudo","pseudo"],["Sont revenus un autre jour","returned"]];
@@ -332,7 +363,8 @@ function demoData(){
       week:{visitors:wk,new:Math.round(wk*.4),plays:wk*3,players:Math.round(wk*.7)},prev_week:{visitors:Math.round(wk*.86),new:Math.round(wk*.33),plays:Math.round(wk*2.6),players:Math.round(wk*.6)},
       period:{visitors:wk*3,new:wk*2,plays:wk*10,players:wk*2,shares:12,limits:85},dau_mau:14.2,days_per_user:1.9,plays_per_player_day:4.3},
     totals:{visitors_all_time:2140,accounts:2300,accounts_with_password:96,pseudos:640,attempts:5120,aura_posts:58,leagues:12,custom_challenges:31,
-      coins_earned:4210,coins_earned_period:1830,site_records_beaten:64,personal_records_beaten:595,attempts_bought:210,buyers:73},
+      coins_earned:4210,coins_earned_period:1830,site_records_beaten:64,personal_records_beaten:595,attempts_bought:210,buyers:73,
+      creator_coins:88,comments:412,comments_period:153,commenters_period:61,challenges_created_period:9},
     daily,games,usage:[],attempts_by_game:[],
     tabs:[{id:"defis",users:900},{id:"records",users:310},{id:"classement",users:260},{id:"aura",users:180},{id:"profil",users:150},{id:"shorts",users:90},{id:"ligue",users:40},{id:"membre",users:25}],
     funnel:{visitors:1300,opened:1010,played:820,saved:350,pseudo:300,returned:260},retention:ret,

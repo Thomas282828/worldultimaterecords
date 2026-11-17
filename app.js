@@ -194,7 +194,7 @@ const WEB_IDS=BASE.filter(c=>c.kind==="web").map(c=>c.id);
 /* ================= data layer ================= */
 // attempt in UI: {id, uid, pseudo, c, v, t, vid(url|null), path, code, status: auto|pending|ok|no, hidden}
 let attempts=[], myId=null, isAdmin=false, sb=null, live=false, currentTab="defis", profileUid=null;
-let myProfile=null, myEmail="", isAnon=true, hasPw=false, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false, coins=0, prepaid=null;
+let myProfile=null, myEmail="", isAnon=true, hasPw=false, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false, coins=0, prepaid=null, comments=[], cmtFor=null, cmtScroll=false;
 const COIN_PRICE=5;
 const LIMIT=3;
 const parisToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Paris"}).format(new Date());
@@ -260,7 +260,8 @@ const DB={
         .on("postgres_changes",{event:"*",schema:"public",table:"aura_posts"},()=>this.refreshSoon())
         .on("postgres_changes",{event:"*",schema:"public",table:"aura_votes"},()=>this.refreshSoon())
         .on("postgres_changes",{event:"*",schema:"public",table:"aura_ideas"},()=>this.refreshSoon())
-        .on("postgres_changes",{event:"*",schema:"public",table:"aura_idea_votes"},()=>this.refreshSoon()).subscribe();
+        .on("postgres_changes",{event:"*",schema:"public",table:"aura_idea_votes"},()=>this.refreshSoon())
+        .on("postgres_changes",{event:"*",schema:"public",table:"comments"},()=>this.refreshSoon()).subscribe();
       setInterval(()=>this.refresh(),60000);
     }catch(e){console.warn(e);toast("Connexion au classement impossible : "+(e.message||e));this.local()}
   },
@@ -279,7 +280,7 @@ const DB={
   local(){
     live=false; myId="local"; $("setupNote").hidden=!!(CFG.supabaseUrl&&CFG.supabaseAnonKey);
     const st=lsGet(LS,{attempts:[],customs:[]}); usage=Object.fromEntries(Object.entries(lsGet("wur_usage_"+parisToday(),{})).map(([k,n])=>[k,{started:n}]));
-    attempts=st.attempts; customs=st.customs; auraPosts=(st.aura||[]).map(rowToAura); auraVotes=st.auraVotes||[]; auraIdeas=st.ideas||[]; auraIdeaVotes=st.ideaVotes||[]; rebuildChallenges(); myLeagues=lsGet("wur_leagues",[]);
+    attempts=st.attempts; customs=st.customs; comments=lsGet("wur_comments",[]); auraPosts=(st.aura||[]).map(rowToAura); auraVotes=st.auraVotes||[]; auraIdeas=st.ideas||[]; auraIdeaVotes=st.ideaVotes||[]; rebuildChallenges(); myLeagues=lsGet("wur_leagues",[]);
     setPill("local","Scores sur cet appareil","Le classement en ligne n'est pas disponible : tes scores restent sur cet appareil.");
     renderAll();
   },
@@ -299,6 +300,7 @@ const DB={
     await loadMyLeagues();
     mySub=su&&!su.error?su.data:null;
     if(us&&!us.error){usage={};(us.data||[]).forEach(u=>usage[u.challenge]=u)}
+    const cm=await sb.from("comments").select("id,challenge,user_id,pseudo,body,created_at").order("created_at",{ascending:false}).limit(3000); if(!cm.error)comments=cm.data||[];
     const wa=await sb.from("wallets").select("coins").eq("user_id",myId).maybeSingle(); if(!wa.error){coins=wa.data?+wa.data.coins||0:0} renderCoins();
     if(!a.error)attempts=a.data.map(rowToAttempt);
     if(!c.error)customs=c.data;
@@ -355,6 +357,18 @@ const DB={
     track("save",{c:o.c,v:+o.v}); await this.refresh();
     if(coins>before)toast(`Bravo ! +${coins-before} pièces`);
     return true;
+  },
+  async addComment(cid,body){
+    if(!(await this.ensureProfile()))return false;
+    if(!live){comments.unshift({id:"lc"+Date.now(),challenge:cid,user_id:myId,pseudo:pseudoIn.value.trim()||"Moi",body,created_at:new Date().toISOString()});lsSet("wur_comments",comments.slice(0,500));renderAll();return true}
+    const {error}=await sb.from("comments").insert({challenge:cid,body});
+    if(error){toast(/row-level security/.test(error.message)?"Tu commentes trop vite : réessaie dans quelques minutes.":"Commentaire impossible : "+error.message);return false}
+    track("comment",{c:cid}); await this.refresh(); return true;
+  },
+  async delComment(id){
+    if(live){const {error}=await sb.from("comments").delete().eq("id",id);if(error){toast("Suppression impossible : "+error.message);return}}
+    comments=comments.filter(x=>x.id!==id); if(!live)lsSet("wur_comments",comments.slice(0,500));
+    toast("Commentaire supprimé."); renderAll();
   },
   async uploadVideo(blob,ext){
     if(!live)return {path:null,localUrl:URL.createObjectURL(blob)};
@@ -578,7 +592,7 @@ function card(c){
   return `<article class="ch">
     <div class="top"><div class="ico">${icon(c)}</div><span class="kind ${c.kind!=="web"?"cam":""}">${kindLbl}</span></div>
     <h3>${esc(c.name)}</h3><p>${esc(c.desc)}</p>
-    <a class="fullrank" href="#c-${esc(c.id)}">Classement complet →</a>
+    <span class="cardlinks"><a class="fullrank" href="#c-${esc(c.id)}">Classement complet →</a><a class="fullrank cmtlink" href="#c-${esc(c.id)}" data-cmts="1">${cmtLabel(c.id)}</a></span>
     <div class="lines">
       ${c.wr?`<div class="rec-line wr"><span>Monde : ${esc(c.wr.who)}</span><strong>${esc(c.fmt(c.wr.v))}</strong></div>`:c.kind==="web"?`<div class="rec-line wr"><span>Pas de record du monde officiel</span><strong></strong></div>`:c.kind==="wur"?`<div class="rec-line wr"><span>Défi original WorldUltimateRecords</span><strong></strong></div>`:c.kind==="vip"?`<div class="rec-line wr"><span>Défi exclusif des membres</span><strong></strong></div>`:`<div class="rec-line wr"><span>Record créé par un joueur</span><strong></strong></div>`}
       <div class="rec-line">${b?`<span>Site : ${plink(b)}</span><strong>${esc(c.fmt(b.v))}</strong>`:`<span>Site : aucun record validé</span><strong>—</strong>`}</div>
@@ -1174,7 +1188,7 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden&&live)DB.r
 let rankCid=null;
 function renderRanking(){
   const c=CHM[rankCid], box=$("rankBox");
-  if(!c){box.innerHTML=`<div class="empty">Ce défi n'existe pas ou a été supprimé. <a href="#records">Voir tous les classements</a></div>`;return}
+  if(!c){box.innerHTML=`<div class="empty">Ce défi n'existe pas ou a été supprimé. <a href="#records">Voir tous les classements</a></div>`;renderComments(null);return}
   const q=($("rankQ")&&$("rankQ").value||"").trim().toLowerCase();
   const all=boardFor(c.id), top=all[0];
   const rows=all.map((a,i)=>({a,rank:i+1})).filter(r=>!q||r.a.pseudo.toLowerCase().includes(q));
@@ -1195,6 +1209,28 @@ function renderRanking(){
         <td>${a.vid?`<a href="#" data-pvid="${esc(a.id)}">vidéo</a>`:c.kind==="web"?'<span class="msg">navigateur</span>':""}${a.vid&&(isAdmin||a.uid===myId)?` · <a href="#" data-short="${esc(a.id)}">Short</a>`:""}${a.uid===myId?` · <a href="#" data-sharecard="${esc(a.id)}">partager</a>`:""}</td></tr>`).join("")||`<tr><td colspan="6"><div class="empty" style="border:0">Aucun joueur ne correspond à « ${esc(q)} ».</div></td></tr>`}
       </tbody></table></div>`:`<div class="empty">Personne n'est encore classé sur ce défi. Le premier score validé prend la 1<sup>re</sup> place.</div>`}`;
   const rq=$("rankQ"); rq.oninput=()=>{const pos=rq.selectionStart;renderRanking();const n=$("rankQ");n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}};
+  renderComments(c);
+}
+
+/* ================= commentaires sous chaque défi ================= */
+function cmtCount(cid){let k=0;for(const x of comments)if(x.challenge===cid)k++;return k}
+function cmtLabel(cid){const k=cmtCount(cid);return k?(k>1?k+" commentaires":"1 commentaire"):"Commenter"}
+function renderComments(c){
+  const box=$("cmtBox"); if(!box)return;
+  if(!c){box.innerHTML="";cmtFor=null;return}
+  if(cmtFor!==c.id||!$("cmtList")){
+    cmtFor=c.id;
+    box.innerHTML=`<h2 id="cmts" style="margin-top:32px">Commentaires</h2>
+      <form class="cmtform" id="cmtForm"><textarea class="field" id="cmtText" maxlength="400" rows="3" required placeholder="Écris un commentaire…"></textarea>
+        <div class="row cmtrow"><span class="msg">Sois sympa : les commentaires méchants ou insultants sont supprimés.</span><button class="btn solid" type="submit" id="cmtSend">Publier</button></div></form>
+      <div id="cmtList"></div>`;
+    $("cmtForm").onsubmit=async e=>{e.preventDefault();const ta=$("cmtText"),b=$("cmtSend"),body=ta.value.trim();if(!body)return;
+      b.disabled=true;const ok=await DB.addComment(c.id,body);b.disabled=false;if(ok){ta.value="";toast("Commentaire publié.")}};
+  }
+  const list=comments.filter(x=>x.challenge===c.id);
+  $("cmtList").innerHTML=list.length?`<ul class="cmts">${list.slice(0,200).map(x=>`<li><div class="cmt-h">${plink({uid:x.user_id,pseudo:x.pseudo})}<span class="msg">${esc(ago(Date.parse(x.created_at)))}</span>${x.user_id===myId||isAdmin?`<button class="btn sm ghost" type="button" data-cmtdel="${esc(x.id)}">Supprimer</button>`:""}</div><p class="notr">${esc(x.body)}</p></li>`).join("")}</ul>`
+    :`<div class="empty">Sois le premier à commenter ce défi.</div>`;
+  if(cmtScroll){cmtScroll=false;setTimeout(()=>{const h=$("cmts");if(h)h.scrollIntoView({behavior:"smooth",block:"start"})},60)}
 }
 
 /* ================= partage : carte de score + Short automatique ================= */
@@ -1467,7 +1503,7 @@ function showTab(id){
   if(id==="aura")renderAura();
   if(id==="membre")renderPass();
   if(id==="profil")renderProfile();
-  currentTab=id; if(statVisit&&id!==statLastTab)track("tab",{c:id}); statLastTab=id;
+  currentTab=id; if(statVisit&&id!==statLastTab)track("tab",{c:id}); statLastTab=id; if(id!=="classement")renderComments(null);
   document.querySelectorAll(".view").forEach(v=>v.hidden=v.id!==id);
   document.querySelectorAll("nav.tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.tab===id&&!(id==="profil"&&profileUid&&profileUid!==myId)?"page":"false"));
   document.querySelector(".foot").hidden=id==="shorts";
@@ -1502,6 +1538,8 @@ document.addEventListener("click",async e=>{
     if(!live){colors[myId]=v;renderAll();return}
     const {data,error}=await sb.from("profiles").update({color:v}).eq("user_id",myId).select().single();
     if(error){toast(error.message);return} myProfile=data; if(v)colors[myId]=v; else delete colors[myId]; renderAll(); toast(v?"Couleur appliquée":"Couleur retirée"); return}
+  const cml=e.target.closest("[data-cmts]"); if(cml){cmtScroll=true;if(location.hash===cml.getAttribute("href")){e.preventDefault();renderComments(CHM[rankCid])}}
+  const cmd=e.target.closest("[data-cmtdel]"); if(cmd){e.preventDefault();cmd.disabled=true;DB.delComment(cmd.dataset.cmtdel);return}
   const scd=e.target.closest("[data-sharecard]"); if(scd){e.preventDefault();const a=attempts.find(x=>x.id===scd.dataset.sharecard);if(a)openShareCard(a);return}
   const sho=e.target.closest("[data-short]"); if(sho){e.preventDefault();const a=attempts.find(x=>x.id===sho.dataset.short);if(a){closeVideo();openShortMaker(a)}return}
   const aid=e.target.closest("[data-auraidea]"); if(aid){e.preventDefault();auraSubmit("solo",null,aid.dataset.auraidea,aid.dataset.side);return}
@@ -1545,6 +1583,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!modal.hidden)cl
 /* ================= create a record ================= */
 const form=$("createForm"), openBtn=$("openCreate");
 openBtn.onclick=()=>{form.hidden=!form.hidden;openBtn.setAttribute("aria-expanded",String(!form.hidden));if(!form.hidden)$("cName").focus()};
+const topCreate=$("openCreateTop"); if(topCreate)topCreate.onclick=()=>{if(form.hidden)openBtn.click();form.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>$("cName").focus({preventScroll:true}),450)};
 $("cCancel").onclick=()=>{form.hidden=true;openBtn.setAttribute("aria-expanded","false")};
 const syncMode=()=>{const m=$("cMode").value;$("cWinWrap").hidden=m!=="count";$("cUnitWrap").hidden=m!=="count"};
 $("cMode").onchange=syncMode; syncMode();
@@ -1563,14 +1602,14 @@ form.addEventListener("submit",async e=>{
 /* ================= admin ================= */
 $("adminBtn").onclick=()=>{
   if(!live){toast("L'espace admin fonctionne une fois Supabase configuré.");return}
-  if(isAdmin){location.hash="records";toast("Tu es déjà connecté en administrateur.");return}
+  if(isAdmin){location.href="admin.html";return}
   arena.hidden=false; document.body.style.overflow="hidden"; $("arenaTitle").textContent="Espace admin"; clearGame();
   stage.innerHTML=`<form class="login" id="lf"><input class="field" id="le" type="email" placeholder="E-mail administrateur" autocomplete="username" required>
     <input class="field" id="lp" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
     <button class="btn solid" type="submit">Se connecter</button><p class="msg" id="lm"></p></form>`;
   $("lf").onsubmit=async ev=>{ev.preventDefault();const m=$("lm");m.textContent="Connexion…";
     try{const ok=await DB.adminLogin($("le").value.trim(),$("lp").value);
-      if(ok){closeArena();await DB.refresh();location.hash="records";toast("Connecté en administrateur")}
+      if(ok){closeArena();location.href="admin.html"}
       else{m.textContent="Ce compte n'est pas administrateur.";m.className="msg bad"}}
     catch(err){m.textContent="Connexion refusée : "+(err.message||err);m.className="msg bad"}};
 };
