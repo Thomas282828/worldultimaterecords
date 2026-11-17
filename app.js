@@ -272,6 +272,7 @@ const DB={
     if(myProfile){pseudoIn.value=myProfile.pseudo;lsSet("wur_pseudo",myProfile.pseudo)}
     else if(pseudoIn.value.trim())await this.setPseudo(pseudoIn.value.trim(),true);
     setPill("on","Classement en ligne",isAdmin?"Connecté en tant qu'administrateur.":"Ton pseudo est réservé pour toi. Tes scores apparaissent dans les classements de tous les joueurs.");
+    trackVisit();
     await this.refresh();
   },
   local(){
@@ -346,7 +347,7 @@ const DB={
     if(!live){attempts.unshift({id:"l"+Date.now(),uid:"local",pseudo,c:o.c,v:o.v,t:Date.now(),vid:o.localUrl||null,code:o.code||"",status:o.status,hidden:false});this.saveLocal();renderAll();return true}
     const {error}=await sb.from("attempts").insert({pseudo,challenge:o.c,value:o.v,status:o.status,video_path:o.path||null,code:o.code||null,consent_at:o.consent||null});
     if(error){toast("Enregistrement impossible : "+(/row-level security/.test(error.message)?"limite de 40 tentatives par heure atteinte, ou session expirée. Réessaie plus tard.":error.message));return false}
-    await this.refresh(); return true;
+    track("save",{c:o.c,v:+o.v}); await this.refresh(); return true;
   },
   async uploadVideo(blob,ext){
     if(!live)return {path:null,localUrl:URL.createObjectURL(blob)};
@@ -515,6 +516,27 @@ const DB={
     await this.afterAuth(data.user); return isAdmin;
   }
 };
+
+/* ================= statistiques anonymes (page admin.html) ================= */
+const STAT_DEVICE=(()=>{try{const ua=navigator.userAgent,w=Math.min(screen.width,screen.height);
+  if(/iPad|Tablet/i.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return "tablet";
+  if(/Mobi|Android|iPhone|iPod/i.test(ua))return w>=600?"tablet":"mobile";return "desktop"}catch(e){return null}})();
+const STAT_REF=(()=>{try{const q=new URLSearchParams(location.search),u=q.get("utm_source")||q.get("ref");if(u)return u.toLowerCase().slice(0,100);
+  if(!document.referrer)return null;const h=new URL(document.referrer).hostname.replace(/^www\.|^m\./,"");return h===location.hostname?null:h.slice(0,100)}catch(e){return null}})();
+let statQ=[],statT=null,statVisit=false,statLastTab="";
+function track(kind,o){
+  if(!live||!sb||isAdmin)return; o=o||{};
+  statQ.push({kind,challenge:o.c?String(o.c).slice(0,60):null,value:Number.isFinite(o.v)?o.v:null,practice:!!o.p,device:STAT_DEVICE,
+    ref:kind==="visit"?STAT_REF:null,lang:kind==="visit"?String(navigator.language||"").slice(0,10)||null:null});
+  clearTimeout(statT); statT=setTimeout(flushStats,1200);
+}
+function flushStats(){
+  if(!statQ.length||!sb||!live)return; const rows=statQ.splice(0,50);
+  sb.from("events").insert(rows).then(({error})=>{if(error)console.warn("stats :",error.message)},()=>{});
+}
+addEventListener("pagehide",flushStats);
+addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")flushStats()});
+function trackVisit(){if(statVisit)return;statVisit=true;track("visit");if(currentTab&&currentTab!=="defis")track("tab",{c:currentTab})}
 
 /* ================= derived ================= */
 const counts=a=>(a.status==="auto"||a.status==="ok")&&!a.hidden;
@@ -1209,7 +1231,7 @@ async function makeScoreCard(a){
   return new Promise(r=>cv.toBlob(b=>r(b),"image/png"));
 }
 async function openShareCard(a){
-  const c=CHM[a.c]; if(!c)return;
+  const c=CHM[a.c]; if(!c)return; track("share",{c:a.c});
   $("modalTitle").textContent="Partager mon score"; const f=$("modalFrame"); f.className="frame form";
   f.innerHTML=`<p class="msg">Création de l'image…</p>`; $("modalLink").hidden=true; modal.hidden=false;
   const blob=await makeScoreCard(a); const url=URL.createObjectURL(blob);
@@ -1438,7 +1460,7 @@ function showTab(id){
   if(id==="aura")renderAura();
   if(id==="membre")renderPass();
   if(id==="profil")renderProfile();
-  currentTab=id;
+  currentTab=id; if(statVisit&&id!==statLastTab)track("tab",{c:id}); statLastTab=id;
   document.querySelectorAll(".view").forEach(v=>v.hidden=v.id!==id);
   document.querySelectorAll("nav.tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.tab===id&&!(id==="profil"&&profileUid&&profileUid!==myId)?"page":"false"));
   document.querySelector(".foot").hidden=id==="shorts";
@@ -1503,7 +1525,7 @@ document.addEventListener("click",async e=>{
   const g=e.target.closest("[data-goto]"); if(g){filterC=g.dataset.filter||"all";location.hash=g.dataset.goto;renderRecords();return}
   const sv=e.target.closest(".short video"); if(sv){sv.muted=!sv.muted;toast(sv.muted?"Son coupé":"Son activé");return}
   const vd=e.target.closest("[data-verdict]"); if(vd){vd.disabled=true;if(await DB.setStatus(vd.dataset.id,vd.dataset.verdict))toast(vd.dataset.verdict==="ok"?"Tentative validée":"Tentative refusée");else vd.disabled=false;return}
-  const sh=e.target.closest("[data-share]"); if(sh){
+  const sh=e.target.closest("[data-share]"); if(sh){ track("share");
     const url=location.href.split("#")[0];
     if(navigator.share){navigator.share({title:"WorldUltimateRecords",text:"Viens battre des records !",url}).catch(()=>{});return}
     if(navigator.clipboard)navigator.clipboard.writeText(url).then(()=>toast("Lien copié"),()=>toast("Lien : "+url)); else toast("Lien : "+url);
@@ -1555,7 +1577,7 @@ function openArena(cid){
   const c=CHM[cid]; if(!c)return;
   arena.hidden=false; document.body.style.overflow="hidden";
   document.querySelectorAll(".short video").forEach(v=>v.pause());
-  $("arenaTitle").textContent=c.name; practice=false; introSkip=false;
+  $("arenaTitle").textContent=c.name; practice=false; introSkip=false; track("open",{c:cid});
   if(c.kind==="vip"&&!isMember()){showLimit(c,"vip");return}
   if(c.kind==="web")GAMES[c.game||cid](c); else camIntro(c);
 }
@@ -1564,7 +1586,7 @@ $("arenaClose").onclick=closeArena;
 function remaining(cid){return isMember()?Infinity:Math.max(0,LIMIT-((usage[cid]||{}).started||0))}
 function remainingText(cid){const r=remaining(cid);return r===Infinity?"Essais illimités (Pass Néon)":`Essais officiels restants aujourd'hui : ${r}/${LIMIT}`}
 function showLimit(c,reason){
-  clearGame();
+  clearGame(); track("limit",{c:c.id});
   stage.innerHTML=reason==="vip"
     ?`<div class="result"><span class="eyebrow">Défi exclusif</span><h2>Réservé aux membres du Pass Néon</h2>
        <p class="hint">${esc(c.desc)}</p><div class="row"><a class="btn solid gold" href="#membre" data-close="1">Découvrir le Pass Néon</a></div></div>`
@@ -1598,7 +1620,7 @@ function takePseudo(msgEl){const p2=$("pseudo2");if(!p2)return true;const n=p2.v
   if(!n){p2.focus();msgEl.textContent="Choisis d'abord un pseudo.";msgEl.className="msg bad";return false}
   pseudoIn.value=n;lsSet("wur_pseudo",n);return true}
 function finish(c,v,extra){
-  clearGame(); const k=compare(c,v);
+  clearGame(); const k=compare(c,v); track("finish",{c:c.id,v:+v,p:practice});
   stage.innerHTML=`<div class="result">
     <span class="eyebrow">${k.isRec?"Nouveau record du site !":k.isPB?"Record personnel !":"Ton score"}</span>
     <div class="mega ${k.isRec?"gold":""}">${esc(c.fmt(v))}</div>
