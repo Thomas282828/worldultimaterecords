@@ -469,3 +469,26 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .sidetag.good{color:var(--good)}.sidetag.bad{color:var(--bad)}
 .aurapts.neg{color:var(--bad)}
 .auraform .ideasign{align-self:flex-start;margin:4px 0 8px}
+
+.pwform{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+.pwform .field{flex:1;min-width:180px;width:auto}
+.acctmore{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}
+.acctmore summary{cursor:pointer;font-weight:600}
+.kind.new{color:var(--gold);border-color:rgba(255,201,74,.55);background:rgba(255,201,74,.08)}
+
+/* ---- nouveaux défis (lot 1) ---- */
+.guesslog{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:420px}
+.guesslog span{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;color:var(--muted)}
+.zonebar{position:relative;width:min(88vw,520px);height:46px;border-radius:23px;background:var(--bg);border:2px solid var(--line);overflow:hidden;direction:ltr}
+.zonegreen{position:absolute;top:0;bottom:0;background:rgba(94,230,168,.35);border-left:2px solid var(--good);border-right:2px solid var(--good);transition:left .15s,width .15s}
+.zonegreen.hit{background:rgba(94,230,168,.8)}
+.zonecur{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:#fff;box-shadow:0 0 12px #fff}
+.zonecur.miss{background:var(--bad);box-shadow:0 0 14px var(--bad)}
+.clocksvg{width:min(60vw,220px);height:auto;filter:drop-shadow(0 0 16px rgba(176,76,255,.45))}
+.clockopts{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:min(80vw,320px);direction:ltr}
+.clockopts .btn{font-family:var(--mono);font-size:20px}
+.sumgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(80vw,320px);direction:ltr}
+.sumcell{aspect-ratio:1;border-radius:14px;border:2px solid var(--line);background:var(--surface-2);color:#fff;font-size:clamp(22px,7vw,34px);font-weight:700;cursor:pointer;padding:0}
+.sumcell.sel{border-color:var(--gold);box-shadow:0 0 16px rgba(255,201,74,.6);color:var(--gold)}
+.mega.pop{animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(1.25);opacity:.4}to{transform:scale(1);opacity:1}}

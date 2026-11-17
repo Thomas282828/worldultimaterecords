@@ -65,7 +65,16 @@ const ICONS={
   hourglass:P('<path d="M6 2h12M6 22h12M7 2c0 6 10 6 10 10S7 16 7 22M17 2c0 6-10 6-10 10s10 4 10 10"/>'),
   angle:P('<path d="M4 20h16M4 20 16 6"/><path d="M10 20a6 6 0 0 0-2-4.5"/>'),
   face:P('<circle cx="12" cy="12" r="9"/><path d="M8.5 10h.01M15.5 10h.01M8 15c2 2 6 2 8 0"/>'),
-  metro:P('<path d="M8 3h8l3 18H5z"/><path d="M12 17 15 6"/><circle cx="12" cy="17" r="1"/>')
+  metro:P('<path d="M8 3h8l3 18H5z"/><path d="M12 17 15 6"/><circle cx="12" cy="17" r="1"/>'),
+  ball:P('<circle cx="12" cy="8" r="5"/><path d="M5 21h14M8 17l4-4 4 4"/>'),
+  question:P('<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5h.01"/>'),
+  snake:P('<path d="M4 18h9a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h9"/><circle cx="19" cy="6" r="1.5"/>'),
+  wing:P('<path d="M3 14c4 0 6-3 8-7 1 4 4 6 10 6-3 3-7 5-11 5-3 0-5-1-7-4z"/>'),
+  bricks:P('<rect x="3" y="4" width="8" height="4"/><rect x="13" y="4" width="8" height="4"/><rect x="7" y="10" width="8" height="4"/><path d="M8 20h8"/><circle cx="12" cy="17" r="1.2"/>'),
+  dodge:P('<rect x="4" y="3" width="5" height="5"/><rect x="15" y="6" width="5" height="5"/><circle cx="12" cy="18" r="3"/>'),
+  zone:P('<rect x="2" y="9" width="20" height="6" rx="3"/><rect x="11" y="9" width="5" height="6"/><path d="M8 6v12"/>'),
+  clock:P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>'),
+  plus10:P('<path d="M4 8h4M6 6v4M4 17l2-3v6M14 14a2 2 0 1 1 4 0v3a2 2 0 1 1-4 0zM12 4l6 6"/>')
 };
 const PLAY='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>';
 
@@ -147,7 +156,18 @@ const BASE=[
   {id:"duration",kind:"web",mode:"web",better:"low",icon:"hourglass",name:"Quelle durée ?",desc:"Une lumière reste allumée quelques secondes : devine combien de temps. 5 manches, ton score est ton écart moyen.",fmt:v=>fr(v,1)+" % d'écart",gap:d=>fr(d,1)+" %"},
   {id:"angle",kind:"web",mode:"web",better:"low",icon:"angle",name:"Angle parfait",desc:"Trace une ligne à l'angle demandé (90°, 45°…) à partir du point. 5 manches, ton score est ton écart moyen en degrés.",fmt:v=>fr(v,1)+"° d'écart",gap:d=>fr(d,1)+"°"},
   {id:"faces",kind:"web",mode:"web",better:"high",icon:"face",name:"Mémoire des visages",desc:"Retiens les visages affichés, puis retrouve-les parmi d'autres. Il y en a un de plus à chaque niveau : une erreur et c'est fini.",fmt:v=>"niveau "+v,gap:d=>Math.round(d)},
-  {id:"steadyclick",kind:"web",mode:"web",better:"high",icon:"metro",name:"Clic régulier",desc:"Clique 30 fois en gardant un rythme le plus régulier possible, à la vitesse que tu veux. Sans métronome !",fmt:v=>fr(v,1)+" %",gap:d=>fr(d,1)+" %"}
+  {id:"steadyclick",kind:"web",mode:"web",better:"high",icon:"metro",name:"Clic régulier",desc:"Clique 30 fois en gardant un rythme le plus régulier possible, à la vitesse que tu veux. Sans métronome !",fmt:v=>fr(v,1)+" %",gap:d=>fr(d,1)+" %"},
+  // ---- nouveaux défis de la semaine (lot 1) ----
+  {id:"n-juggle",batch:1,kind:"web",mode:"web",better:"high",icon:"ball",name:"Jongle néon",desc:"Touche la balle pour la faire rebondir et garde-la en l'air le plus longtemps possible. Elle tombe de plus en plus vite.",fmt:v=>v+" touches",gap:d=>Math.round(d)},
+  {id:"n-guess",batch:1,kind:"web",mode:"web",better:"low",icon:"question",name:"Le nombre mystère",desc:"Trouve le nombre secret entre 1 et 1000. À chaque essai, le site te dit si c'est plus ou moins. Le moins d'essais gagne.",fmt:v=>v+" essais",gap:d=>Math.round(d)},
+  {id:"n-snake",batch:1,kind:"web",mode:"web",better:"high",icon:"snake",name:"Serpent néon",desc:"Mange le plus de fruits possible sans toucher les murs ni ta propre queue. Le serpent accélère à chaque fruit.",fmt:v=>v+" fruits",gap:d=>Math.round(d)},
+  {id:"n-flappy",batch:1,kind:"web",mode:"web",better:"high",icon:"wing",name:"Envol néon",desc:"Touche l'écran pour voler et passe le plus de portes possible sans rien toucher.",fmt:v=>v+" portes",gap:d=>Math.round(d)},
+  {id:"n-breakout",batch:1,kind:"web",mode:"web",better:"high",icon:"bricks",name:"Casse-briques néon",desc:"Renvoie la balle avec la raquette et casse le plus de briques possible. Tu as 3 vies.",fmt:v=>v+" briques",gap:d=>Math.round(d)},
+  {id:"n-dodge",batch:1,kind:"web",mode:"web",better:"high",icon:"dodge",name:"Esquive",desc:"Déplace ton point pour éviter les blocs qui tombent de plus en plus vite. Tiens le plus longtemps possible.",fmt:v=>fr(v,2)+" s",gap:d=>fr(d,2)+" s"},
+  {id:"n-zone",batch:1,kind:"web",mode:"web",better:"high",icon:"zone",name:"Zone verte",desc:"Arrête le curseur dans la zone verte. Elle rétrécit et le curseur accélère à chaque réussite : une erreur et c'est fini.",fmt:v=>"série de "+v,gap:d=>Math.round(d)},
+  {id:"n-clock",batch:1,kind:"web",mode:"web",better:"high",icon:"clock",name:"Lis l'heure",desc:"Une horloge à aiguilles s'affiche : trouve la bonne heure parmi 4 propositions, le plus de fois possible en 30 secondes. Chaque erreur retire un point.",fmt:v=>v+" points",gap:d=>Math.round(d)},
+  {id:"n-sum10",batch:1,kind:"web",mode:"web",better:"high",icon:"plus10",name:"Somme 10",desc:"Touche deux nombres qui font 10 ensemble, le plus de paires possible en 45 secondes.",fmt:v=>v+" paires",gap:d=>Math.round(d)},
+  {id:"n-chain",batch:1,kind:"web",mode:"web",better:"high",icon:"calc",name:"Calcul à la chaîne",desc:"Un nombre s'affiche, puis des opérations défilent une par une. Calcule de tête et donne le résultat final. Une opération de plus à chaque niveau.",fmt:v=>"niveau "+v,gap:d=>Math.round(d)}
 ];
 function decorate(c){
   if(c.mode==="count"){c.better="high";c.fmt=c.fmt||(v=>Number(v).toLocaleString(LOCALE())+" "+(c.unit||""))}
@@ -158,12 +178,15 @@ function decorate(c){
 BASE.forEach(decorate);
 let CH=BASE.slice(), CHM={};
 let customs=[];      // [{id,user_id,name,description,mode,win,unit,created_at}]
+
 function rebuildChallenges(){
   const cu=customs.filter(it=>it&&it.id&&["count","time","hold"].includes(it.mode)).map(it=>decorate({
     id:String(it.id),kind:"custom",mode:it.mode,win:[30,60,120].includes(+it.win)?+it.win:60,unit:String(it.unit||"répétitions").slice(0,20),
     icon:"star",name:String(it.name||"Record").slice(0,60),desc:String(it.description||"").slice(0,240),by:it.user_id,t:Date.parse(it.created_at)||0}));
   cu.sort((a,b)=>b.t-a.t);
-  CH=BASE.concat(cu); CHM=Object.fromEntries(CH.map(c=>[c.id,c]));
+  const RANK={web:0,cam:1,wur:2,vip:3,custom:4};
+
+  CH=BASE.concat(cu).map((c,i)=>[c,i]).sort((x,y)=>(RANK[x[0].kind]??9)-(RANK[y[0].kind]??9)||x[1]-y[1]).map(x=>x[0]); CHM=Object.fromEntries(CH.map(c=>[c.id,c]));
 }
 const isBetter=(c,a,b)=>c.better==="low"?a<b:a>b;
 const WEB_IDS=BASE.filter(c=>c.kind==="web").map(c=>c.id);
@@ -171,7 +194,7 @@ const WEB_IDS=BASE.filter(c=>c.kind==="web").map(c=>c.id);
 /* ================= data layer ================= */
 // attempt in UI: {id, uid, pseudo, c, v, t, vid(url|null), path, code, status: auto|pending|ok|no, hidden}
 let attempts=[], myId=null, isAdmin=false, sb=null, live=false, currentTab="defis", profileUid=null;
-let myProfile=null, myEmail="", isAnon=true, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false;
+let myProfile=null, myEmail="", isAnon=true, hasPw=false, reports=[], memberSince={}, colors={}, members=new Set(), mySub=null, usage={}, practice=false, introSkip=false;
 const LIMIT=3;
 const parisToday=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Paris"}).format(new Date());
 const isMember=()=>members.has(myId)||isAdmin;
@@ -208,6 +231,9 @@ function getCaptcha(){
   });
 }
 const withCaptcha=async o=>{const t=await getCaptcha();return t?Object.assign({},o,{captchaToken:t}):o};
+const TECH_MAIL="@joueurs.wur.invalid";
+function setUserFlags(u){hasPw=!!(u.app_metadata&&u.app_metadata.pw);const em=u.email||"";myEmail=em.endsWith(TECH_MAIL)?"":em;isAnon=!!u.is_anonymous&&!hasPw&&!myEmail}
+async function fnError(error){try{const j=await error.context.json();return j.error||error.message}catch(e){return error.message||String(error)}}
 
 function rowToAttempt(r){
   return {id:r.id,uid:r.user_id,pseudo:String(r.pseudo||"Anonyme").slice(0,24),c:r.challenge,v:+r.value,t:Date.parse(r.created_at)||0,
@@ -226,7 +252,7 @@ const DB={
         if(r.error)throw r.error; session=r.data.session;
       }
       await this.afterAuth(session.user);
-      sb.auth.onAuthStateChange((ev,s)=>{if(s&&s.user&&s.user.id!==myId)this.afterAuth(s.user);else if(s&&s.user&&ev==="USER_UPDATED"){myEmail=s.user.email||"";isAnon=!!s.user.is_anonymous;renderAll()}});
+      sb.auth.onAuthStateChange((ev,s)=>{if(s&&s.user&&s.user.id!==myId)this.afterAuth(s.user);else if(s&&s.user&&(ev==="USER_UPDATED"||ev==="TOKEN_REFRESHED")){setUserFlags(s.user);renderAll()}});
       sb.channel("wur").on("postgres_changes",{event:"*",schema:"public",table:"attempts"},()=>this.refreshSoon())
         .on("postgres_changes",{event:"*",schema:"public",table:"challenges"},()=>this.refreshSoon())
         .on("postgres_changes",{event:"*",schema:"public",table:"reports"},()=>this.refreshSoon())
@@ -238,7 +264,7 @@ const DB={
     }catch(e){console.warn(e);toast("Connexion au classement impossible : "+(e.message||e));this.local()}
   },
   async afterAuth(user){
-    myId=user.id; myEmail=user.email||""; isAnon=!!user.is_anonymous; live=true;
+    myId=user.id; setUserFlags(user); live=true;
     const [ad,pr]=await Promise.all([
       sb.from("admins").select("user_id").eq("user_id",myId).maybeSingle(),
       sb.from("profiles").select("*").eq("user_id",myId).maybeSingle()]);
@@ -465,6 +491,24 @@ const DB={
     const {error}=await sb.auth.signInWithOtp({email,options:await withCaptcha({shouldCreateUser:false,emailRedirectTo:location.origin+location.pathname})});
     if(error)throw error;
   },
+  async setPassword(password){
+    const {error}=await sb.functions.invoke("pseudo-account",{body:{action:"set-password",password}});
+    if(error)throw new Error(await fnError(error));
+    const r=await sb.auth.refreshSession(); if(r.data&&r.data.user)setUserFlags(r.data.user); else hasPw=true;
+    renderAll();
+  },
+  async pseudoLogin(pseudo,password){
+    const t=await getCaptcha();
+    const {data,error}=await sb.functions.invoke("pseudo-account",{body:{action:"login",pseudo,password,captchaToken:t}});
+    if(error)throw new Error(await fnError(error));
+    const r=await sb.auth.setSession({access_token:data.access_token,refresh_token:data.refresh_token});
+    if(r.error)throw r.error;
+    if(r.data.user&&r.data.user.id!==myId)await this.afterAuth(r.data.user);
+  },
+  async logout(){
+    try{await sb.auth.signOut()}catch(e){}
+    try{localStorage.removeItem("wur_pseudo")}catch(e){} location.reload();
+  },
   async adminLogin(email,pw){
     const {data,error}=await sb.auth.signInWithPassword({email,password:pw,options:await withCaptcha({})});
     if(error)throw error;
@@ -524,7 +568,7 @@ function renderVids(){
 function renderGrids(){
   renderVids();
   $("gridCam").innerHTML=CH.filter(c=>c.kind==="cam").map(card).join("");
-  $("gridWeb").innerHTML=CH.filter(c=>c.kind==="web").map(card).join("");
+  $("gridWeb").innerHTML=CH.filter(c=>c.kind==="web"&&!(c.batch&&c.batch===LATEST_BATCH)).map(card).join("");
   $("gridWur").innerHTML=CH.filter(c=>c.kind==="wur").map(card).join("");
   $("gridVip").innerHTML=CH.filter(c=>c.kind==="vip").map(card).join("");
   const cu=CH.filter(c=>c.kind==="custom");
@@ -534,7 +578,7 @@ let filterC="all";
 function wrBox(c){return c.wr?`<div class="wrbox">Record du monde : <b>${esc(c.fmt(c.wr.v))}</b> · ${esc(c.wr.who)} (${esc(c.wr.where)})${c.wr.when?", "+esc(c.wr.when):""} · <a href="${esc(c.wr.url)}" target="_blank" rel="noopener">${esc(c.wr.src)}</a>${c.wr.video?` · <a href="#" data-watch="${esc(c.id)}">voir la vidéo</a>`:""}</div>`:""}
 function renderRecords(){
   const q=$("q").value.trim().toLowerCase();
-  const chipList=[{id:"all",name:"Tous"},{id:"k:cam",name:"Caméra"},{id:"k:wur",name:"Défis WUR"},{id:"k:vip",name:"Pass Néon"},{id:"k:web",name:"Navigateur"},{id:"k:custom",name:"Communauté"}];
+  const chipList=[{id:"all",name:"Tous"},{id:"k:web",name:"Navigateur"},{id:"k:cam",name:"Caméra"},{id:"k:wur",name:"Défis WUR"},{id:"k:vip",name:"Pass Néon"},{id:"k:custom",name:"Communauté"}];
   $("chips").innerHTML=chipList.map(c=>`<button class="chip" data-chip="${c.id}" aria-pressed="${filterC===c.id}">${esc(c.name)}</button>`).join("")
     +(filterC.startsWith("c:")?`<button class="chip" data-chip="${esc(filterC)}" aria-pressed="true">${esc((CHM[filterC.slice(2)]||{}).name||"")}</button>`:"");
   const matchC=c=>filterC==="all"||(filterC.startsWith("k:")&&c.kind===filterC.slice(2))||(filterC.startsWith("c:")&&c.id===filterC.slice(2));
@@ -566,7 +610,7 @@ function renderFeed(){
     if(c.wr)items.push({kind:"wr",c}); else items.push({kind:"challenge",c});
     const b=boardFor(c.id)[0]; if(b)items.push({kind:"record",c,a:b});
   });
-  CH.filter(c=>c.kind==="web").forEach(c=>{const b=boardFor(c.id)[0];items.push(b?{kind:"record",c,a:b}:c.wr?{kind:"wr",c}:{kind:"challenge",c})});
+  CH.filter(c=>c.kind==="web"&&!c.past).forEach(c=>{const b=boardFor(c.id)[0];items.push(b?{kind:"record",c,a:b}:c.wr?{kind:"wr",c}:{kind:"challenge",c})});
   const out=[]; let vi=0;
   items.forEach((it,i)=>{ if(i%2===1&&vi<vids.length)out.push({kind:"video",c:CHM[vids[vi].c],a:vids[vi++]}); out.push(it)});
   while(vi<vids.length)out.push({kind:"video",c:CHM[vids[vi].c],a:vids[vi++]});
@@ -854,10 +898,8 @@ function weekInfo(){
   const end=new Date(d); end.setDate(end.getDate()+7);
   return {start:d.getTime(),end:end.getTime(),n:Math.round((d-new Date(2026,0,5))/(7*864e5))};
 }
-function weeklyPicks(){
-  const w=weekInfo().n, pick=(arr,k)=>arr.length?arr[((w*k)%arr.length+arr.length)%arr.length]:null;
-  return [pick(CH.filter(c=>c.kind==="cam"),1),pick(CH.filter(c=>c.kind==="wur"),5),pick(CH.filter(c=>c.kind==="web"),3)].filter(Boolean);
-}
+const LATEST_BATCH=Math.max(0,...BASE.map(c=>c.batch||0));
+function weeklyPicks(){return CH.filter(c=>c.batch&&c.batch===LATEST_BATCH)}
 function weeklyBoard(cid){
   const st=weekInfo().start, best={}, c=CHM[cid];
   for(const a of list()){if(a.c!==cid||!counts(a)||a.t<st)continue;if(!best[a.uid]||isBetter(c,a.v,best[a.uid].v))best[a.uid]=a}
@@ -866,10 +908,10 @@ function weeklyBoard(cid){
 function renderCta(){const el=$("passCta");if(el)el.hidden=isMember()}
 function renderWeekly(){renderCta();
   const wi=weekInfo(), left=wi.end-Date.now(), dd=Math.floor(left/864e5), hh=Math.floor(left%864e5/36e5);
-  $("weekLeft").textContent=`Se termine dans ${dd} j ${hh} h · nouveaux défis chaque lundi`;
+  $("weekLeft").textContent=`Classement de la semaine · se termine dans ${dd} j ${hh} h`;
   $("weekly").innerHTML=weeklyPicks().map(c=>{const b=weeklyBoard(c.id);
     return `<article class="ch week">
-      <div class="top"><div class="ico">${icon(c)}</div><span class="kind ${c.kind!=="web"?"cam":""}">${c.kind==="web"?"Navigateur":"Caméra"}</span></div>
+      <div class="top"><div class="ico">${icon(c)}</div><span class="kind new">Nouveau</span></div>
       <h3>${esc(c.name)}</h3>
       <ol class="rest">${b.slice(0,3).map((r,i)=>`<li><span class="rk m${i}">${i+1}</span><span class="nm">${plink(r)}</span><span class="num">${esc(c.fmt(r.v))}</span></li>`).join("")||`<li><span class="rk"></span><span class="nm" style="color:var(--muted)">Personne cette semaine</span><span></span></li>`}</ol>
       <a class="fullrank" href="#c-${esc(c.id)}">Classement complet du défi →</a>
@@ -921,11 +963,22 @@ function renderProfile(){
     html+=`<h2 style="margin-top:28px">Mes ligues privées</h2><p class="msg">Un classement rien qu'entre amis, en classe ou en famille.</p>`+leaguesHtml();
     html+=`<h2 style="margin-top:28px">Mon compte</h2><div class="acct">`;
     if(!live)html+=`<p class="msg">Le compte en ligne sera disponible quand le site sera relié à Supabase.</p>`;
-    else if(isAnon)html+=`<p class="msg">Ton compte est lié à ce navigateur. Ajoute ton e-mail pour le retrouver sur un autre appareil et ne jamais perdre ton pseudo.</p>
-      <form class="row" id="linkForm" style="justify-content:flex-start"><input class="field" id="linkEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Protéger mon compte</button></form>
-      <p class="msg">Déjà protégé sur un autre appareil ?</p>
-      <form class="row" id="loginForm" style="justify-content:flex-start"><input class="field" id="loginEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Recevoir un lien de connexion</button></form>`;
-    else html+=`<p class="msg good">Compte protégé par l'e-mail ${esc(myEmail)}. Pour te connecter sur un autre appareil, utilise « Recevoir un lien de connexion » depuis cet appareil-là.</p>`;
+    else{
+      const pseudoNow=myProfile&&myProfile.pseudo;
+      const pwForm=lbl=>`<form class="pwform" id="pwForm"><input class="field" id="pw1" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Mot de passe (8 caractères min.)"><input class="field" id="pw2" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Confirme le mot de passe"><button class="btn solid" type="submit">${lbl}</button></form>`;
+      if(hasPw)html+=`<p class="msg good">Ton pseudo « ${esc(pseudoNow||"")} » est protégé par un mot de passe. Sur un autre appareil, connecte-toi ci-dessous avec ton pseudo et ton mot de passe : tu retrouves tous tes records, tes vidéos et ton Pass Néon.</p>
+        <details class="acctmore"><summary>Changer mon mot de passe</summary>${pwForm("Changer le mot de passe")}</details>`;
+      else if(pseudoNow)html+=`<p class="msg">Ajoute un mot de passe à ton pseudo « ${esc(pseudoNow)} » pour garder tes records et les retrouver sur n'importe quel appareil.</p>${pwForm("Protéger mon pseudo")}`;
+      else html+=`<p class="msg">Choisis d'abord un pseudo (en haut de la page Défis), puis ajoute-lui un mot de passe pour retrouver tes records partout.</p>`;
+      html+=`<h3 style="margin-top:18px">${hasPw?"Se connecter avec un autre pseudo":"Déjà un pseudo avec mot de passe ?"}</h3>
+        ${pseudoNow&&isAnon?`<p class="msg bad">Attention : le pseudo « ${esc(pseudoNow)} » de cet appareil n'a pas de mot de passe. Si tu te connectes à un autre pseudo, tu ne pourras plus le récupérer.</p>`:""}
+        <form class="pwform" id="pwLogin"><input class="field" id="lgPseudo" maxlength="24" required autocomplete="username" placeholder="Ton pseudo"><input class="field" id="lgPw" type="password" maxlength="72" required autocomplete="current-password" placeholder="Mot de passe"><button class="btn" type="submit">Se connecter</button></form>
+        ${isAnon?"":`<div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn sm ghost" id="logoutBtn">Se déconnecter de cet appareil</button></div>`}`;
+      html+=`<details class="acctmore"><summary>Autre option : l'e-mail</summary>`+(myEmail?`<p class="msg good">Compte aussi protégé par l'e-mail ${esc(myEmail)}.</p>`
+        :`<p class="msg">Tu peux aussi lier ton compte à ton e-mail, pour recevoir un lien de connexion si tu oublies ton mot de passe.</p>
+        <form class="row" id="linkForm" style="justify-content:flex-start"><input class="field" id="linkEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Lier mon e-mail</button></form>`)+`
+        <form class="row" id="loginForm" style="justify-content:flex-start"><input class="field" id="loginEmail" type="email" placeholder="ton@email.fr" required autocomplete="email"><button class="btn" type="submit">Recevoir un lien de connexion</button></form></details>`;
+    }
     html+=`<div class="row" style="justify-content:flex-start;margin-top:8px"><button class="btn" id="notifBtn">${"Notification" in window&&Notification.permission==="granted"?"Notifications activées":"Activer les notifications"}</button></div>
       <p class="msg">Le site te prévient quand ta vidéo est validée ou quand ton record est battu, tant qu'il est ouvert dans un onglet.</p>
       <div class="danger"><b>Supprimer toutes mes données</b><p class="msg">Efface ton pseudo, tes scores, tes vidéos et les records que tu as créés. Action définitive.</p>
@@ -935,6 +988,14 @@ function renderProfile(){
   if(own){bindAccount();bindStats();bindLeagues()}
 }
 function bindAccount(){
+  const pf=$("pwForm"); if(pf)pf.onsubmit=async e=>{e.preventDefault();const a=$("pw1").value,b=$("pw2").value;
+    if(a.length<8){toast("Le mot de passe doit faire 8 caractères minimum.");return}
+    if(a!==b){toast("Les deux mots de passe ne sont pas identiques.");return}
+    const bt=pf.querySelector("button");bt.disabled=true;
+    try{await DB.setPassword(a);toast("Mot de passe enregistré : ton pseudo est protégé.");renderProfile()}catch(err){toast("Impossible : "+(err.message||err));bt.disabled=false}};
+  const pl=$("pwLogin"); if(pl)pl.onsubmit=async e=>{e.preventDefault();const bt=pl.querySelector("button");bt.disabled=true;
+    try{await DB.pseudoLogin($("lgPseudo").value.trim(),$("lgPw").value);toast("Connecté : tes records sont de retour !");showTab("profil")}catch(err){toast(err.message||String(err));bt.disabled=false}};
+  const lo=$("logoutBtn"); if(lo)lo.onclick=()=>{lo.disabled=true;DB.logout()};
   const lf=$("linkForm"); if(lf)lf.onsubmit=async e=>{e.preventDefault();try{await DB.linkEmail($("linkEmail").value.trim());toast("E-mail envoyé : clique sur le lien reçu pour confirmer.")}catch(err){toast("Impossible : "+(err.message||err))}};
   const lg=$("loginForm"); if(lg)lg.onsubmit=async e=>{e.preventDefault();try{await DB.emailLogin($("loginEmail").value.trim());toast("Lien envoyé : ouvre-le sur cet appareil pour te connecter.")}catch(err){toast(/not found|signups not allowed/i.test(err.message)?"Aucun compte protégé avec cet e-mail.":"Impossible : "+(err.message||err))}};
   const nb=$("notifBtn"); if(nb)nb.onclick=async()=>{if(!("Notification" in window)){toast("Ton navigateur ne gère pas les notifications.");return}
@@ -1029,7 +1090,7 @@ let plan="year";
 const yearlyOn=()=>!!CFG.stripePaymentLinkYearly;
 function payUrl(){
   const u=new URL(plan==="year"&&yearlyOn()?CFG.stripePaymentLinkYearly:CFG.stripePaymentLink); u.searchParams.set("client_reference_id",myId);
-  if(myEmail)u.searchParams.set("prefilled_email",myEmail); return u.toString();
+  if(myEmail&&!myEmail.endsWith(TECH_MAIL))u.searchParams.set("prefilled_email",myEmail); return u.toString();
 }
 function payBlocker(){
   if(!live)return "Le paiement s'activera quand le site sera relié à son classement en ligne (étapes 1 à 5 du guide).";
@@ -1068,7 +1129,7 @@ function renderPass(){
     pay.setAttribute("aria-disabled",String(!ok)); pay.classList.toggle("off",!ok); pay.href=ok?payUrl():"#";
     msg.className="msg"+(checked&&bl?" bad":"");
     msg.innerHTML=!checked?"Coche les trois cases pour accéder au paiement."
-      :bl==="anon"?`Dernière étape : <a href="#profil">protège ton compte avec ton e-mail</a> pour garder ton Pass sur tous tes appareils.`
+      :bl==="anon"?`Dernière étape : <a href="#profil">protège ton pseudo avec un mot de passe</a> pour garder ton Pass sur tous tes appareils.`
       :bl?esc(bl):"Tout est prêt : clique pour payer sur la page sécurisée de Stripe.";
   };
   ["pc1","pc2","pc3"].forEach(i=>$(i).onchange=sync); sync();
@@ -1496,7 +1557,7 @@ function openArena(cid){
   document.querySelectorAll(".short video").forEach(v=>v.pause());
   $("arenaTitle").textContent=c.name; practice=false; introSkip=false;
   if(c.kind==="vip"&&!isMember()){showLimit(c,"vip");return}
-  if(c.kind==="web")GAMES[cid](c); else camIntro(c);
+  if(c.kind==="web")GAMES[c.game||cid](c); else camIntro(c);
 }
 function closeArena(){clearGame();arena.hidden=true;document.body.style.overflow=""}
 $("arenaClose").onclick=closeArena;
@@ -1510,7 +1571,7 @@ function showLimit(c,reason){
     :`<div class="result"><span class="eyebrow">Plus d'essais aujourd'hui</span><h2>Tu as utilisé tes ${LIMIT} essais sur « ${esc(c.name)} »</h2>
        <p class="hint">Tes essais reviennent demain à minuit. Tu peux tenter un autre défi${c.kind==="web"?", t'entraîner sans enregistrer":""}, ou passer au Pass Néon pour des essais illimités.</p>
        <div class="row">${c.kind==="web"?`<button class="btn" id="pracBtn">S'entraîner sans enregistrer</button>`:""}<a class="btn solid gold" href="#membre" data-close="1">Essais illimités avec le Pass Néon</a></div></div>`;
-  const pb=$("pracBtn"); if(pb)pb.onclick=()=>{practice=true;introSkip=true;GAMES[c.id](c)};
+  const pb=$("pracBtn"); if(pb)pb.onclick=()=>{practice=true;introSkip=true;GAMES[c.game||c.id](c)};
 }
 function intro(c,startLabel,onStart){
   if(introSkip){introSkip=false;return onStart()}
@@ -1548,8 +1609,8 @@ function finish(c,v,extra){
     <div class="row">${practice?"":`<button class="btn solid" id="saveBtn">Enregistrer ma tentative</button>`}<button class="btn" id="againBtn">Rejouer</button></div>
     <p class="msg" id="saveMsg">${practice?"Mode entraînement : ce score n'est pas enregistré.":pseudoIn.value.trim()?"Enregistrée sous « "+esc(pseudoIn.value.trim())+" ».":"Ajoute un pseudo pour apparaître au classement."}</p>
     <p class="msg">${remainingText(c.id)}</p></div>`;
-  if(practice){$("againBtn").onclick=()=>{introSkip=remaining(c.id)===0;GAMES[c.id](c)};return}
-  $("againBtn").onclick=()=>GAMES[c.id](c);
+  if(practice){$("againBtn").onclick=()=>{introSkip=remaining(c.id)===0;GAMES[c.game||c.id](c)};return}
+  $("againBtn").onclick=()=>GAMES[c.game||c.id](c);
   const sb_=$("saveBtn"), m=$("saveMsg");
   sb_.onclick=async()=>{ if(!takePseudo(m))return; sb_.disabled=true;sb_.textContent="Enregistrement…";
     if(await DB.addAttempt({c:c.id,v:Math.round(v*1000)/1000,status:"auto"})){sb_.textContent="Enregistrée";
@@ -1706,6 +1767,7 @@ function tone(f,dur,at,type,vol){const a=ac();if(!a)return;const o=a.createOscil
   const t=Math.max(a.currentTime,at||0);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.setValueAtTime(v,t+Math.max(.02,dur-.03));g.gain.linearRampToValueAtTime(0,t+dur);o.start(t);o.stop(t+dur+.02)}
 const GAMES={
   mental(c){
+    const D=(c.p&&c.p.secs)||30;
     intro(c,"Commencer",()=>{
       clearGame(); let ok=0,ans=0,start=0,iv;
       const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
@@ -1714,12 +1776,12 @@ const GAMES={
         else if(t===1){a=rnd(10,99);b=rnd(2,a);ans=a-b;q=a+" − "+b}
         else{a=rnd(2,12);b=rnd(2,12);ans=a*b;q=a+" × "+b}
         $("mq").textContent=q+" = ?";$("mi").value=""};
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:36px">30,00</div><div class="mega num" id="mq">…</div>
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:36px">${fr(D,2)}</div><div class="mega num" id="mq">…</div>
         <input id="mi" class="typeIn num" type="text" inputmode="numeric" autocomplete="off" aria-label="Ta réponse" style="max-width:220px;text-align:center;font-size:28px">
         <p class="msg"><span class="num" id="mc">0</span> bonne(s) réponse(s). La réponse est validée dès qu'elle est juste.</p>`;
       next(); const inp=$("mi"); inp.focus();
       inp.addEventListener("input",()=>{
-        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,30-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,D-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
           if(r<=0){clearInterval(iv);inp.disabled=true;later(()=>finish(c,ok),300)}},50);cleanup.push(()=>clearInterval(iv))}
         if(inp.value.trim()!==""&&+inp.value===ans){ok++;$("mc").textContent=ok;next()}
       });
@@ -1727,16 +1789,17 @@ const GAMES={
   },
   stroop(c){
     const COLS=[["ROUGE","#ff4d6d"],["BLEU","#4d8dff"],["VERT","#3ddc84"],["JAUNE","#ffd23f"],["VIOLET","#b04cff"]];
+    const D=(c.p&&c.p.secs)||30;
     intro(c,"Commencer",()=>{
       clearGame(); let score=0,ink=0,start=0,iv,done=false;
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:36px">30,00</div><div class="mega" id="sw" style="font-family:var(--display)">…</div>
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:36px">${fr(D,2)}</div><div class="mega" id="sw" style="font-family:var(--display)">…</div>
         <div class="row" id="sb">${COLS.map((k,i)=>`<button class="btn" data-ink="${i}" style="border-color:${k[1]};min-width:96px">${k[0].charAt(0)+k[0].slice(1).toLowerCase()}</button>`).join("")}</div>
         <p class="msg">Score : <span class="num" id="sc">0</span> · clique la couleur de l'encre</p>`;
       const next=()=>{const w=Math.floor(Math.random()*5);do{ink=Math.floor(Math.random()*5)}while(ink===w&&Math.random()<.85);
         const el=$("sw");el.textContent=COLS[w][0];el.style.color=COLS[ink][1];el.style.textShadow="0 0 18px "+COLS[ink][1]};
       next();
       $("sb").addEventListener("click",e=>{const b=e.target.closest("[data-ink]");if(!b||done)return;
-        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,30-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,D-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
           if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,Math.max(0,score)),300)}},50);cleanup.push(()=>clearInterval(iv))}
         score+=(+b.dataset.ink===ink)?1:-1;$("sc").textContent=score;next()});
     });
@@ -1760,36 +1823,37 @@ const GAMES={
   },
   reaction(c){
     intro(c,"Commencer",()=>{
-      const times=[];
+      const times=[],K=(c.p&&c.p.k)||3;
       const round=()=>{
         clearGame(); stage.classList.add("wait");
-        stage.innerHTML=`<div class="mega" style="font-size:40px">Attends…</div><p class="hint">Essai ${times.length+1} sur 3. Clique dès que l'écran devient violet.</p>`;
+        stage.innerHTML=`<div class="mega" style="font-size:40px">Attends…</div><p class="hint">Essai ${times.length+1} sur ${K}. Clique dès que l'écran devient violet.</p>`;
         let go=0;
         later(()=>{stage.classList.remove("wait");stage.classList.add("go");stage.innerHTML=`<div class="mega">CLIQUE !</div>`;go=performance.now()},1400+Math.random()*2600);
         stage.onpointerdown=()=>{
           if(!go){clearGame();stage.innerHTML=`<div class="mega" style="font-size:40px;color:var(--bad)">Trop tôt</div><p class="hint">Attends que l'écran devienne violet.</p><button class="btn" id="rt">Reprendre cet essai</button>`;$("rt").onclick=round;return}
           const ms=performance.now()-go; times.push(ms); clearGame();
-          if(times.length<3){stage.innerHTML=`<div class="mega">${Math.round(ms)} ms</div><button class="btn solid" id="nx">Essai suivant</button>`;$("nx").onclick=round}
-          else finish(c,times.reduce((a,b)=>a+b,0)/3,"Essais : "+times.map(t=>Math.round(t)+" ms").join(" · "));
+          if(times.length<K){stage.innerHTML=`<div class="mega">${Math.round(ms)} ms</div><button class="btn solid" id="nx">Essai suivant</button>`;$("nx").onclick=round}
+          else finish(c,times.reduce((a,b)=>a+b,0)/K,"Essais : "+times.map(t=>Math.round(t)+" ms").join(" · "));
         };
       };
       round();
     });
   },
   clicks(c){
+    const D=(c.p&&c.p.secs)||10;
     intro(c,"Prêt",()=>{
       clearGame(); let n=0,start=0,iv;
-      stage.innerHTML=`<div class="mega num" id="tm">10.00</div><button class="clickbtn" id="cb">Clique pour démarrer</button><div class="msg"><span class="num" id="cn">0</span> clics</div>`;
+      stage.innerHTML=`<div class="mega num" id="tm">${D.toFixed(2)}</div><button class="clickbtn" id="cb">Clique pour démarrer</button><div class="msg"><span class="num" id="cn">0</span> clics</div>`;
       const cb=$("cb"),tm=$("tm"),cn=$("cn");
       cb.onpointerdown=e=>{e.preventDefault();
         if(!start){start=performance.now();cb.textContent="CLIQUE !";
-          iv=setInterval(()=>{const r=Math.max(0,10-(performance.now()-start)/1000);tm.textContent=r.toFixed(2);if(r<=0){clearInterval(iv);cb.disabled=true;later(()=>finish(c,n,fr(n/10,1)+" clics par seconde"),300)}},30);
+          iv=setInterval(()=>{const r=Math.max(0,D-(performance.now()-start)/1000);tm.textContent=r.toFixed(2);if(r<=0){clearInterval(iv);cb.disabled=true;later(()=>finish(c,n,fr(n/D,1)+" clics par seconde"),300)}},30);
           cleanup.push(()=>clearInterval(iv))}
-        if(performance.now()-start<10000){n++;cn.textContent=n}};
+        if(performance.now()-start<D*1000){n++;cn.textContent=n}};
     });
   },
   typing(c){
-    const S="A record is never broken by chance, it is prepared every single day.";
+    const S=(c.p&&c.p.text)||"A record is never broken by chance, it is prepared every single day.";
     intro(c,"Commencer",()=>{
       clearGame(); let start=0,iv;
       stage.innerHTML=`<div class="typing-target notr" id="tt"></div><input id="ti" class="typeIn" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Recopie la phrase"><div class="mega num" style="font-size:36px" id="tm">0,00 s</div>`;
@@ -1823,7 +1887,7 @@ const GAMES={
   },
   aim(c){
     intro(c,"Commencer",()=>{
-      clearGame(); let hit=0,miss=0,start=0; const N=20;
+      clearGame(); let hit=0,miss=0,start=0; const N=(c.p&&c.p.n)||20;
       stage.innerHTML=`<div class="msg" style="position:absolute;top:12px;left:0;right:0;pointer-events:none"><span class="num" id="cnt">0</span> / ${N} · ratés <span class="num" id="ms">0</span></div>`;
       const place=()=>{const old=stage.querySelector(".target");if(old)old.remove();
         const r=stage.getBoundingClientRect(),b=document.createElement("button");b.className="target";b.setAttribute("aria-label","Cible");
@@ -1836,12 +1900,13 @@ const GAMES={
     });
   },
   chrono(c){
+    const T=(c.p&&c.p.t)||10,H=(c.p&&c.p.hide)||3;
     intro(c,"Lancer le chrono",()=>{
       clearGame(); const start=performance.now(); let iv;
-      stage.innerHTML=`<div class="mega num" id="tm">0.000</div><p class="hint">Le chrono disparaît après 3 secondes. Arrête-le pile à 10,000.</p><button class="btn solid" id="stop" style="font-size:20px;padding:16px 34px">STOP</button>`;
+      stage.innerHTML=`<div class="mega num" id="tm">0.000</div><p class="hint">Le chrono disparaît après ${H} secondes. Arrête-le pile à ${fr(T,3)}.</p><button class="btn solid" id="stop" style="font-size:20px;padding:16px 34px">STOP</button>`;
       const tm=$("tm");
-      iv=setInterval(()=>{const s=(performance.now()-start)/1000;tm.textContent=s<3?s.toFixed(3):"?.???"},16);cleanup.push(()=>clearInterval(iv));
-      $("stop").onclick=()=>{const s=(performance.now()-start)/1000;clearInterval(iv);finish(c,Math.abs(s-10)*1000,"Arrêté à "+fr(s,3)+" s")};
+      iv=setInterval(()=>{const s=(performance.now()-start)/1000;tm.textContent=s<H?s.toFixed(3):"?.???"},16);cleanup.push(()=>clearInterval(iv));
+      $("stop").onclick=()=>{const s=(performance.now()-start)/1000;clearInterval(iv);finish(c,Math.abs(s-T)*1000,"Arrêté à "+fr(s,3)+" s")};
       $("stop").focus();
     });
   },
@@ -1879,13 +1944,14 @@ const GAMES={
     });
   },
   alternate(c){
+    const D=(c.p&&c.p.secs)||10;
     intro(c,"Commencer",()=>{
       clearGame(); let n=0,last=-1,start=0,iv,done=false;
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:36px">${fr(10,2)}</div>
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:36px">${fr(D,2)}</div>
         <div class="altrow"><button class="altbtn" data-s="0">◀</button><button class="altbtn" data-s="1">▶</button></div>
         <div class="msg"><span class="num" id="cn">0</span> touches · alterne gauche et droite</div>`;
       stage.querySelectorAll(".altbtn").forEach(b=>b.onpointerdown=e=>{e.preventDefault();if(done)return;const s=+b.dataset.s;
-        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,10-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,D-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
           if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,n),300)}},30);cleanup.push(()=>clearInterval(iv))}
         if(s!==last){n++;last=s;$("cn").textContent=n;b.classList.add("hit");later(()=>b.classList.remove("hit"),80)}
         else{b.classList.add("miss");later(()=>b.classList.remove("miss"),150)}});
@@ -1979,15 +2045,16 @@ const GAMES={
     });
   },
   seq25(c){
+    const M=(c.p&&c.p.m)||5,TOT=M*M;
     intro(c,"Commencer",()=>{
       clearGame(); let nx=1,start=0,iv;
-      const nums=Array.from({length:25},(_,i)=>i+1);for(let i=24;i>0;i--){const j=Math.floor(Math.random()*(i+1));[nums[i],nums[j]]=[nums[j],nums[i]]}
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(0,2)} s</div><div class="seqgrid">${nums.map(n=>`<button class="seqcell num" data-n="${n}">${n}</button>`).join("")}</div><div class="msg">Prochain : <b class="num" id="nx">1</b></div>`;
+      const nums=Array.from({length:TOT},(_,i)=>i+1);for(let i=TOT-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[nums[i],nums[j]]=[nums[j],nums[i]]}
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(0,2)} s</div><div class="seqgrid" style="grid-template-columns:repeat(${M},1fr)">${nums.map(n=>`<button class="seqcell num" data-n="${n}">${n}</button>`).join("")}</div><div class="msg">Prochain : <b class="num" id="nx">1</b></div>`;
       stage.querySelector(".seqgrid").onpointerdown=e=>{const b=e.target.closest(".seqcell");if(!b||b.disabled)return;e.preventDefault();
         if(+b.dataset.n!==nx){b.classList.add("miss");later(()=>b.classList.remove("miss"),180);return}
         if(nx===1){start=performance.now();iv=setInterval(()=>$("tm").textContent=fr((performance.now()-start)/1000,2)+" s",30);cleanup.push(()=>clearInterval(iv))}
-        b.disabled=true;b.classList.add("done");nx++;$("nx").textContent=nx>25?"✓":nx;
-        if(nx>25){clearInterval(iv);finish(c,(performance.now()-start)/1000)}};
+        b.disabled=true;b.classList.add("done");nx++;$("nx").textContent=nx>TOT?"✓":nx;
+        if(nx>TOT){clearInterval(iv);finish(c,(performance.now()-start)/1000)}};
     });
   },
   higher(c){
@@ -2019,8 +2086,8 @@ const GAMES={
   },
   estimate(c){
     intro(c,"Commencer",()=>{
-      const W=480,H=320,ROUNDS=10;let r=0,errs=[];
-      const round=()=>{clearGame();stage.classList.add("top");const N=8+Math.floor(Math.random()*53);
+      const W=480,H=320,ROUNDS=(c.p&&c.p.rounds)||10,LO=(c.p&&c.p.lo)||8,HI=(c.p&&c.p.hi)||60;let r=0,errs=[];
+      const round=()=>{clearGame();stage.classList.add("top");const N=LO+Math.floor(Math.random()*(HI-LO+1));
         stage.innerHTML=`<div class="msg">Manche ${r+1} / ${ROUNDS}</div>${gameCanvas(W,H)}<div id="ea" class="row" style="min-height:52px"></div>`;
         const cv=$("cv"),g=cv.getContext("2d"),dots=[];let guard=0;
         while(dots.length<N&&guard++<5000){const p={x:14+Math.random()*(W-28),y:14+Math.random()*(H-28)};if(dots.every(q=>Math.hypot(q.x-p.x,q.y-p.y)>17))dots.push(p)}
@@ -2059,7 +2126,7 @@ const GAMES={
       clearGame(); const a=ac();
       stage.innerHTML=`<div class="msg"><span class="mega num" id="rh" style="font-size:34px">0</span> battements · fautes <span class="num" id="rf">0</span> / 3</div>
         <div class="beat" id="bt">4</div><p class="msg" id="rs">Écoute le tempo… tu commences à « Go ».</p>`;
-      const bt=$("bt"),WIN=110,LEAD=4;let iv0=600,beats=[],t=performance.now()+700,hits=0,faults=0,over=false,raf,sched=0;
+      const bt=$("bt"),WIN=110,LEAD=4;let iv0=(c.p&&c.p.ms)||600,beats=[],t=performance.now()+700,hits=0,faults=0,over=false,raf,sched=0;
       for(let i=0;i<4000&&beats.length<4000;i++){beats.push({t,hit:false,miss:false});t+=iv0;iv0=Math.max(300,iv0*.993)}
       const audioOff=a?a.currentTime*1000-performance.now():0;
       const fault=()=>{faults++;$("rf").textContent=faults;bt.classList.add("bad");later(()=>bt.classList.remove("bad"),180);if(faults>=3&&!over){over=true;later(()=>finish(c,hits),500)}};
@@ -2080,18 +2147,19 @@ const GAMES={
     });
   },
   stars(c){
+    const LIVES=(c.p&&c.p.lives)||3;
     intro(c,"Commencer",()=>{
       clearGame(); stage.classList.add("top");
       const W=400,H=560;
-      stage.innerHTML=`<div class="msg"><span class="mega num" id="sc" style="font-size:34px">0</span> étoiles · ratées <span class="num" id="sm">0</span> / 3</div>${gameCanvas(W,H,"max-height:64vh")}`;
+      stage.innerHTML=`<div class="msg"><span class="mega num" id="sc" style="font-size:34px">0</span> étoiles · ratées <span class="num" id="sm">0</span> / ${LIVES}</div>${gameCanvas(W,H,"max-height:64vh")}`;
       const cv=$("cv"),g=cv.getContext("2d");let stars=[],caught=0,missed=0,over=false,raf,last=performance.now(),t0=last,nextSpawn=t0+400,pops=[];
       const star=(x,y,r,col)=>{g.beginPath();for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;g.lineTo(x+rr*Math.cos(a),y+rr*Math.sin(a))}g.closePath();g.fillStyle=col;g.shadowColor=col;g.shadowBlur=14;g.fill();g.shadowBlur=0};
       const loop=now=>{const dt=Math.min(50,now-last)/1000;last=now;const el=(now-t0)/1000;
         if(!over&&now>=nextSpawn){stars.push({x:30+Math.random()*(W-60),y:-20,v:120+el*9+Math.random()*60});nextSpawn=now+Math.max(260,900-el*22)}
         g.clearRect(0,0,W,H);g.fillStyle="rgba(255,107,138,.35)";g.fillRect(0,H-4,W,4);
         stars.forEach(s=>{if(!over)s.y+=s.v*dt;star(s.x,s.y,20,"#ffc94a")});
-        const fell=stars.filter(s=>s.y>H+10);if(fell.length&&!over){missed+=fell.length;$("sm").textContent=Math.min(3,missed);stage.classList.add("flash");later(()=>stage.classList.remove("flash"),200);
-          if(missed>=3){over=true;later(()=>finish(c,caught),700)}}
+        const fell=stars.filter(s=>s.y>H+10);if(fell.length&&!over){missed+=fell.length;$("sm").textContent=Math.min(LIVES,missed);stage.classList.add("flash");later(()=>stage.classList.remove("flash"),200);
+          if(missed>=LIVES){over=true;later(()=>finish(c,caught),700)}}
         stars=stars.filter(s=>s.y<=H+10);
         pops=pops.filter(p=>(p.a-=dt*2.5)>0);pops.forEach(p=>{g.globalAlpha=p.a;star(p.x,p.y,20+(1-p.a)*20,"#fff");g.globalAlpha=1});
         raf=requestAnimationFrame(loop)};
@@ -2102,9 +2170,10 @@ const GAMES={
     });
   },
   mole(c){
+    const D=(c.p&&c.p.secs)||30;
     intro(c,"Commencer",()=>{
-      clearGame(); let score=0,end=performance.now()+30000,lit=-1,litUntil=0,done=false,iv,hits=0;
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(30,2)}</div><div class="molegrid">${Array.from({length:9},(_,i)=>`<button class="molecell" data-i="${i}" aria-label="Case ${i+1}"></button>`).join("")}</div><div class="msg">Score : <b class="num" id="sc">0</b></div>`;
+      clearGame(); let score=0,end=performance.now()+D*1000,lit=-1,litUntil=0,done=false,iv,hits=0;
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(D,2)}</div><div class="molegrid">${Array.from({length:9},(_,i)=>`<button class="molecell" data-i="${i}" aria-label="Case ${i+1}"></button>`).join("")}</div><div class="msg">Score : <b class="num" id="sc">0</b></div>`;
       const cells=[...stage.querySelectorAll(".molecell")];
       const light=()=>{if(lit>=0)cells[lit].classList.remove("on");let n;do{n=Math.floor(Math.random()*9)}while(n===lit);lit=n;cells[n].classList.add("on");litUntil=performance.now()+Math.max(420,1100-hits*22)};
       stage.querySelector(".molegrid").onpointerdown=e=>{const b=e.target.closest(".molecell");if(!b||done)return;e.preventDefault();
@@ -2118,9 +2187,10 @@ const GAMES={
     });
   },
   runner(c){
+    const D=(c.p&&c.p.secs)||20;
     intro(c,"Commencer",()=>{
       clearGame(); let n=0,start=0,done=false,raf,iv,last=performance.now();
-      stage.innerHTML=`<div class="msg" style="position:absolute;top:10px;left:0;right:0;pointer-events:none"><span class="num" id="tm">${fr(20,2)}</span> · <b class="num" id="cn">0</b> prise(s)</div><button class="runbtn" id="rb">Attrape-moi !</button>`;
+      stage.innerHTML=`<div class="msg" style="position:absolute;top:10px;left:0;right:0;pointer-events:none"><span class="num" id="tm">${fr(D,2)}</span> · <b class="num" id="cn">0</b> prise(s)</div><button class="runbtn" id="rb">Attrape-moi !</button>`;
       const rb=$("rb");let x=0,y=0,tx=0,ty=0;
       const box=()=>{const r=stage.getBoundingClientRect();return {w:r.width-rb.offsetWidth-20,h:r.height-rb.offsetHeight-60}};
       const target=()=>{const b=box();tx=10+Math.random()*Math.max(10,b.w);ty=50+Math.random()*Math.max(10,b.h)};
@@ -2130,7 +2200,7 @@ const GAMES={
         rb.style.left=x+"px";rb.style.top=y+"px";raf=requestAnimationFrame(loop)};
       raf=requestAnimationFrame(loop);cleanup.push(()=>cancelAnimationFrame(raf));
       rb.onpointerdown=e=>{e.preventDefault();e.stopPropagation();if(done)return;
-        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,20-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,D-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);
           if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,n),300)}},30);cleanup.push(()=>clearInterval(iv));return}
         n++;$("cn").textContent=n;const b=box();x=10+Math.random()*Math.max(10,b.w);y=50+Math.random()*Math.max(10,b.h);target()};
     });
@@ -2160,24 +2230,25 @@ const GAMES={
     });
   },
   pairs(c){
-    const SYM=[["★","#ffc94a"],["●","#5fd0ff"],["▲","#5ee6a8"],["■","#ff6b8a"],["◆","#b04cff"],["♥","#ff4fa3"],["♣","#9dff4f"],["☀","#ff9a3d"]];
+    const SYM=[["★","#ffc94a"],["●","#5fd0ff"],["▲","#5ee6a8"],["■","#ff6b8a"],["◆","#b04cff"],["♥","#ff4fa3"],["♣","#9dff4f"],["☀","#ff9a3d"],["✚","#ffffff"],["☾","#9fb4ff"],["✿","#ff7ad9"],["⬢","#3fe0d0"]];
+    const NP=(c.p&&c.p.pairs)||8;
     intro(c,"Commencer",()=>{
-      clearGame(); const deck=[...Array(8).keys(),...Array(8).keys()];for(let i=15;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
+      clearGame(); const deck=[...Array(NP).keys(),...Array(NP).keys()];for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]]}
       let open=[],found=0,start=0,iv,lock=false,tries=0;
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(0,2)} s</div><div class="pairgrid notr">${deck.map((k,i)=>`<button class="paircard" data-i="${i}"><span style="color:${SYM[k][1]}">${SYM[k][0]}</span></button>`).join("")}</div><div class="msg">Paires : <b class="num" id="pf">0</b> / 8</div>`;
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(0,2)} s</div><div class="pairgrid notr" style="grid-template-columns:repeat(${NP>8?(NP>10?6:5):4},1fr);width:min(92vw,${NP>8?520:380}px)">${deck.map((k,i)=>`<button class="paircard" data-i="${i}"><span style="color:${SYM[k][1]}">${SYM[k][0]}</span></button>`).join("")}</div><div class="msg">Paires : <b class="num" id="pf">0</b> / 8</div>`;
       stage.querySelector(".pairgrid").onpointerdown=e=>{const b=e.target.closest(".paircard");if(!b||lock||b.classList.contains("up"))return;e.preventDefault();
         if(!start){start=performance.now();iv=setInterval(()=>$("tm").textContent=fr((performance.now()-start)/1000,2)+" s",30);cleanup.push(()=>clearInterval(iv))}
         b.classList.add("up");open.push(b);
         if(open.length===2){tries++;const [a,d]=open;open=[];
           if(deck[a.dataset.i]===deck[d.dataset.i]){a.classList.add("ok");d.classList.add("ok");found++;$("pf").textContent=found;
-            if(found===8){clearInterval(iv);const s=(performance.now()-start)/1000;later(()=>finish(c,s,tries+" coups"),400)}}
+            if(found===NP){clearInterval(iv);const s=(performance.now()-start)/1000;later(()=>finish(c,s,tries+" coups"),400)}}
           else{lock=true;later(()=>{a.classList.remove("up");d.classList.remove("up");lock=false},600)}}};
     });
   },
   maze(c){
     intro(c,"Commencer",()=>{
       clearGame(); stage.classList.add("top");
-      const N=12,CS=34,W=N*CS+8,H=W;const walls=Array.from({length:N*N},()=>[1,1,1,1]),seen=new Uint8Array(N*N);
+      const N=(c.p&&c.p.n)||12,CS=Math.round(408/N),W=N*CS+8,H=W;const walls=Array.from({length:N*N},()=>[1,1,1,1]),seen=new Uint8Array(N*N);
       const stack=[0];seen[0]=1;
       while(stack.length){const cur=stack[stack.length-1],x=cur%N,y=Math.floor(cur/N),nb=[];
         if(y>0&&!seen[cur-N])nb.push([cur-N,0,2]);if(x<N-1&&!seen[cur+1])nb.push([cur+1,1,3]);if(y<N-1&&!seen[cur+N])nb.push([cur+N,2,0]);if(x>0&&!seen[cur-1])nb.push([cur-1,3,1]);
@@ -2206,10 +2277,11 @@ const GAMES={
     });
   },
   truefalse(c){
+    const D=(c.p&&c.p.secs)||30;
     intro(c,"Commencer",()=>{
       clearGame(); let score=0,truth=true,start=0,iv,done=false;
       const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
-      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(30,2)}</div><div class="mega num notr" id="eq" style="font-size:clamp(30px,8vw,60px)">…</div>
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(D,2)}</div><div class="mega num notr" id="eq" style="font-size:clamp(30px,8vw,60px)">…</div>
         <div class="row"><button class="btn solid tfbtn good" id="tv">Vrai</button><button class="btn solid tfbtn bad" id="tf">Faux</button></div>
         <p class="msg">Score : <b class="num" id="sc">0</b> · ou touches ← et →</p>`;
       const next=()=>{const t=rnd(0,2);let a,b,r,q;
@@ -2217,7 +2289,7 @@ const GAMES={
         truth=Math.random()<.5;let shown=r;if(!truth){const k=rnd(0,2);shown=k===0?r+(Math.random()<.5?-1:1)*rnd(1,3):k===1?r+(Math.random()<.5?-10:10):(t===2?r+(Math.random()<.5?-a:a):r+(Math.random()<.5?-2:2));if(shown===r||shown<0)shown=r+1}
         $("eq").textContent=q+" = "+shown;$("eq").style.color=""};
       const ans=v=>{if(done)return;
-        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,30-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,Math.max(0,score)),300)}},50);cleanup.push(()=>clearInterval(iv))}
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,D-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,Math.max(0,score)),300)}},50);cleanup.push(()=>clearInterval(iv))}
         const ok=v===truth;score+=ok?1:-1;$("sc").textContent=score;if(!ok){stage.classList.add("flash");later(()=>stage.classList.remove("flash"),180)}next()};
       $("tv").onclick=()=>ans(true);$("tf").onclick=()=>ans(false);
       const kd=e=>{if(e.code==="ArrowLeft"){e.preventDefault();ans(true)}else if(e.code==="ArrowRight"){e.preventDefault();ans(false)}};document.addEventListener("keydown",kd);cleanup.push(()=>document.removeEventListener("keydown",kd));
@@ -2307,6 +2379,205 @@ const GAMES={
         cb.classList.add("hit");later(()=>cb.classList.remove("hit"),70);
         if(ts.length===N){const ivs=ts.slice(1).map((t,i)=>t-ts[i]),m=ivs.reduce((a,b)=>a+b,0)/ivs.length,sd=Math.sqrt(ivs.reduce((a,b)=>a+(b-m)*(b-m),0)/ivs.length);
           const sc=Math.max(0,Math.min(100,100*(1-sd/m)));later(()=>finish(c,Math.round(sc*10)/10,"Tempo moyen : "+Math.round(60000/m)+" clics par minute"),300)}};
+    });
+  },
+  "n-juggle"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); stage.classList.add("top");
+      const W=360,H=520,R=28;
+      stage.innerHTML=`<div class="msg"><span class="mega num" id="jh" style="font-size:34px">0</span> touches</div>${gameCanvas(W,H,"max-height:64vh")}<p class="msg" id="js">Touche la balle pour la faire rebondir. Elle ne doit pas tomber !</p>`;
+      const cv=$("cv"),g=cv.getContext("2d");let b={x:W/2,y:H*.45,vx:0,vy:0},hits=0,started=false,over=false,raf,last=performance.now(),grav=900;
+      const draw=()=>{g.clearRect(0,0,W,H);g.fillStyle="rgba(255,107,138,.35)";g.fillRect(0,H-4,W,4);
+        g.beginPath();g.arc(b.x,b.y,R,0,7);g.fillStyle="#ffc94a";g.shadowColor="#ffc94a";g.shadowBlur=22;g.fill();g.shadowBlur=0;
+        g.strokeStyle="#1a1029";g.lineWidth=3;g.beginPath();g.arc(b.x,b.y,R*.62,0,7);g.stroke()};
+      const loop=now=>{const dt=Math.min(32,now-last)/1000;last=now;
+        if(started&&!over){b.vy+=grav*dt;b.x+=b.vx*dt;b.y+=b.vy*dt;
+          if(b.x<R){b.x=R;b.vx=Math.abs(b.vx)}if(b.x>W-R){b.x=W-R;b.vx=-Math.abs(b.vx)}if(b.y<R){b.y=R;b.vy=Math.abs(b.vy)*.5}
+          if(b.y>H+R){over=true;$("js").textContent="La balle est tombée !";$("js").className="msg bad";later(()=>finish(c,hits),700)}}
+        draw();raf=requestAnimationFrame(loop)};
+      raf=requestAnimationFrame(loop);cleanup.push(()=>{over=true;cancelAnimationFrame(raf)});
+      cv.onpointerdown=e=>{e.preventDefault();if(over)return;const p=cvPoint(cv,e);
+        if(Math.hypot(p.x-b.x,p.y-b.y)>R*1.7)return;
+        started=true;hits++;$("jh").textContent=hits;b.vy=-(560+Math.min(220,hits*4));b.vx=(b.x-p.x)*9+(Math.random()-.5)*120;grav=900+hits*14;
+        if(ac())tone(520+Math.min(600,hits*12),.05,null,"sine",.1)};
+    });
+  },
+  "n-guess"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); const secret=1+Math.floor(Math.random()*1000);let tries=0,lo=1,hi=1000;
+      stage.innerHTML=`<p class="msg">J'ai choisi un nombre entre <b class="num">1</b> et <b class="num">1000</b>. Trouve-le avec le moins d'essais possible.</p>
+        <div class="row"><input id="gi" class="typeIn num" type="text" inputmode="numeric" autocomplete="off" aria-label="Ta réponse" style="max-width:160px;text-align:center;font-size:28px"><button class="btn solid" id="gv">Valider</button></div>
+        <div class="mega num" id="gh" style="font-size:30px">?</div><p class="msg">Entre <b class="num" id="glo">1</b> et <b class="num" id="ghi">1000</b> · <span class="num" id="gt">0</span> essai(s)</p><div class="guesslog" id="gl"></div>`;
+      const inp=$("gi");inp.focus();
+      const go=()=>{const v=parseInt(inp.value,10);if(!(v>=1&&v<=1000))return;tries++;$("gt").textContent=tries;inp.value="";inp.focus();
+        if(v===secret){$("gh").textContent="🎯 "+v;later(()=>finish(c,tries,"Le nombre était "+secret),600);return}
+        const up=v<secret;if(up)lo=Math.max(lo,v+1);else hi=Math.min(hi,v-1);$("glo").textContent=lo;$("ghi").textContent=hi;
+        $("gh").textContent=up?"C'est plus ▲":"C'est moins ▼";$("gh").style.color=up?"var(--good)":"var(--bad)";
+        $("gl").insertAdjacentHTML("afterbegin",`<span class="num">${v} ${up?"▲":"▼"}</span>`)};
+      $("gv").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
+    });
+  },
+  "n-snake"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); stage.classList.add("top");
+      const N=18,CS=22,W=N*CS,H=W;let snake=[{x:8,y:9},{x:7,y:9},{x:6,y:9}],dir=1,nextDir=1,food=null,eaten=0,over=false,tm,step=150;
+      stage.innerHTML=`<div class="msg"><span class="mega num" id="sn" style="font-size:34px">0</span> fruits</div>${gameCanvas(W,H,"max-height:52vh")}
+        <div class="dpad"><button data-d="0" aria-label="Haut">▲</button><button data-d="3" aria-label="Gauche">◀</button><button data-d="2" aria-label="Bas">▼</button><button data-d="1" aria-label="Droite">▶</button></div>`;
+      const cv=$("cv"),g=cv.getContext("2d");
+      const place=()=>{do{food={x:Math.floor(Math.random()*N),y:Math.floor(Math.random()*N)}}while(snake.some(s=>s.x===food.x&&s.y===food.y))};place();
+      const draw=()=>{g.clearRect(0,0,W,H);g.strokeStyle="rgba(176,76,255,.12)";g.lineWidth=1;for(let i=1;i<N;i++){g.beginPath();g.moveTo(i*CS,0);g.lineTo(i*CS,H);g.moveTo(0,i*CS);g.lineTo(W,i*CS);g.stroke()}
+        g.fillStyle="#ff6b8a";g.shadowColor="#ff6b8a";g.shadowBlur=12;g.beginPath();g.arc(food.x*CS+CS/2,food.y*CS+CS/2,CS*.35,0,7);g.fill();
+        snake.forEach((s,i)=>{g.fillStyle=i?"#7d3cff":"#5ee6a8";g.shadowColor=g.fillStyle;g.fillRect(s.x*CS+2,s.y*CS+2,CS-4,CS-4)});g.shadowBlur=0};
+      const tick=()=>{if(over)return;if((nextDir+2)%4!==dir)dir=nextDir;const h=snake[0],nh={x:h.x+(dir===1?1:dir===3?-1:0),y:h.y+(dir===2?1:dir===0?-1:0)};
+        if(nh.x<0||nh.y<0||nh.x>=N||nh.y>=N||snake.some(s=>s.x===nh.x&&s.y===nh.y)){over=true;stage.classList.add("flash");later(()=>finish(c,eaten),700);return}
+        snake.unshift(nh);if(nh.x===food.x&&nh.y===food.y){eaten++;$("sn").textContent=eaten;step=Math.max(70,step-4);place();if(ac())tone(660,.06,null,"square",.08)}else snake.pop();
+        draw();tm=setTimeout(tick,step)};
+      cleanup.push(()=>{over=true;clearTimeout(tm)});draw();tm=setTimeout(tick,700);
+      stage.querySelector(".dpad").onpointerdown=e=>{const b=e.target.closest("[data-d]");if(!b)return;e.preventDefault();nextDir=+b.dataset.d};
+      const K={ArrowUp:0,ArrowRight:1,ArrowDown:2,ArrowLeft:3,KeyW:0,KeyD:1,KeyS:2,KeyA:3,KeyZ:0,KeyQ:3};
+      const kd=e=>{if(K[e.code]!=null){e.preventDefault();nextDir=K[e.code]}};document.addEventListener("keydown",kd);cleanup.push(()=>document.removeEventListener("keydown",kd));
+      let sx=0,sy=0;cv.onpointerdown=e=>{sx=e.clientX;sy=e.clientY};cv.onpointerup=e=>{const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.max(Math.abs(dx),Math.abs(dy))<20)return;nextDir=Math.abs(dx)>Math.abs(dy)?(dx>0?1:3):(dy>0?2:0)};
+    });
+  },
+  "n-flappy"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); stage.classList.add("top");
+      const W=360,H=520,BX=90,BR=14,GAP=150,PW=56;let y=H/2,vy=0,pipes=[],passed=0,started=false,over=false,raf,last=performance.now(),spawn=0;
+      stage.innerHTML=`<div class="msg"><span class="mega num" id="fp" style="font-size:34px">0</span> portes</div>${gameCanvas(W,H,"max-height:64vh")}<p class="msg">Touche l'écran ou appuie sur Espace pour voler.</p>`;
+      const cv=$("cv"),g=cv.getContext("2d");
+      const flap=()=>{if(over)return;started=true;vy=-400;if(ac())tone(780,.04,null,"sine",.06)};
+      const loop=now=>{const dt=Math.min(32,now-last)/1000;last=now;
+        if(started&&!over){vy+=1350*dt;y+=vy*dt;spawn-=dt;if(spawn<=0){spawn=1.45;pipes.push({x:W+PW,gy:90+Math.random()*(H-180-GAP),done:false})}
+          pipes.forEach(p=>p.x-=165*dt);pipes=pipes.filter(p=>p.x>-PW);
+          pipes.forEach(p=>{if(!p.done&&p.x+PW<BX-BR){p.done=true;passed++;$("fp").textContent=passed}
+            if(BX+BR>p.x&&BX-BR<p.x+PW&&(y-BR<p.gy||y+BR>p.gy+GAP))over=true});
+          if(y>H-BR||y<BR)over=true;if(over){stage.classList.add("flash");later(()=>finish(c,passed),700)}}
+        g.clearRect(0,0,W,H);g.fillStyle="#7d3cff";g.shadowColor="#b04cff";g.shadowBlur=12;
+        pipes.forEach(p=>{g.fillRect(p.x,0,PW,p.gy);g.fillRect(p.x,p.gy+GAP,PW,H-p.gy-GAP)});
+        g.fillStyle="#ffc94a";g.shadowColor="#ffc94a";g.beginPath();g.arc(BX,y,BR,0,7);g.fill();g.shadowBlur=0;
+        raf=requestAnimationFrame(loop)};
+      raf=requestAnimationFrame(loop);cleanup.push(()=>{over=true;cancelAnimationFrame(raf)});
+      cv.onpointerdown=e=>{e.preventDefault();flap()};
+      const kd=e=>{if(e.code==="Space"||e.code==="ArrowUp"){e.preventDefault();flap()}};document.addEventListener("keydown",kd);cleanup.push(()=>document.removeEventListener("keydown",kd));
+    });
+  },
+  "n-breakout"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); stage.classList.add("top");
+      const W=400,H=520,PWd=80,R=8,COLS=8,ROWS=5,BW=W/COLS,BH=20;let px=W/2,ball={x:W/2,y:H-60,vx:180,vy:-260},bricks=[],broken=0,lives=3,run=false,over=false,raf,last=performance.now();
+      const fill=()=>{bricks=[];for(let r=0;r<ROWS;r++)for(let k=0;k<COLS;k++)bricks.push({x:k*BW+2,y:50+r*(BH+4),h:`hsl(${270+r*18} 90% 62%)`})};fill();
+      stage.innerHTML=`<div class="msg"><span class="mega num" id="bk" style="font-size:34px">0</span> briques · vies <span class="num" id="bl">3</span></div>${gameCanvas(W,H,"max-height:62vh")}<p class="msg">Déplace la raquette avec le doigt, la souris ou les flèches. Touche pour lancer.</p>`;
+      const cv=$("cv"),g=cv.getContext("2d");const keys={};
+      const reset=()=>{run=false;ball={x:px,y:H-60,vx:(Math.random()<.5?-1:1)*180,vy:-260}};
+      const loop=now=>{const dt=Math.min(32,now-last)/1000;last=now;
+        if(keys.l)px-=420*dt;if(keys.r)px+=420*dt;px=Math.max(PWd/2,Math.min(W-PWd/2,px));
+        if(!run){ball.x=px;ball.y=H-40-R}
+        else if(!over){ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+          if(ball.x<R||ball.x>W-R){ball.vx*=-1;ball.x=Math.max(R,Math.min(W-R,ball.x))}if(ball.y<R){ball.vy=Math.abs(ball.vy)}
+          if(ball.y>H-40-R&&ball.y<H-28&&Math.abs(ball.x-px)<PWd/2+R&&ball.vy>0){const off=(ball.x-px)/(PWd/2);const sp=Math.hypot(ball.vx,ball.vy)*1.02;ball.vx=sp*off*.8;ball.vy=-Math.sqrt(Math.max(1,sp*sp-ball.vx*ball.vx))}
+          for(const b of bricks){if(!b.dead&&ball.x>b.x-R&&ball.x<b.x+BW-4+R&&ball.y>b.y-R&&ball.y<b.y+BH+R){b.dead=true;broken++;$("bk").textContent=broken;ball.vy*=-1;if(ac())tone(520+broken*6,.04,null,"square",.06);break}}
+          if(bricks.every(b=>b.dead)){fill();ball.vx*=1.1;ball.vy*=1.1}
+          if(ball.y>H+R){lives--;$("bl").textContent=lives;stage.classList.add("flash");later(()=>stage.classList.remove("flash"),200);if(lives<=0){over=true;later(()=>finish(c,broken),600)}else reset()}}
+        g.clearRect(0,0,W,H);bricks.forEach(b=>{if(b.dead)return;g.fillStyle=b.h;g.fillRect(b.x,b.y,BW-4,BH)});
+        g.fillStyle="#5fd0ff";g.shadowColor="#5fd0ff";g.shadowBlur=12;g.fillRect(px-PWd/2,H-40,PWd,10);
+        g.fillStyle="#fff";g.beginPath();g.arc(ball.x,ball.y,R,0,7);g.fill();g.shadowBlur=0;raf=requestAnimationFrame(loop)};
+      raf=requestAnimationFrame(loop);cleanup.push(()=>{over=true;cancelAnimationFrame(raf)});
+      cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}px=cvPoint(cv,e).x;run=true};
+      cv.onpointermove=e=>{px=cvPoint(cv,e).x};
+      const kd=e=>{if(e.code==="ArrowLeft"){keys.l=1;e.preventDefault()}if(e.code==="ArrowRight"){keys.r=1;e.preventDefault()}if(e.code==="Space"){run=true;e.preventDefault()}};
+      const ku=e=>{if(e.code==="ArrowLeft")keys.l=0;if(e.code==="ArrowRight")keys.r=0};
+      document.addEventListener("keydown",kd);document.addEventListener("keyup",ku);cleanup.push(()=>{document.removeEventListener("keydown",kd);document.removeEventListener("keyup",ku)});
+    });
+  },
+  "n-dodge"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); stage.classList.add("top");
+      const W=400,H=520,PR=14;let p={x:W/2,y:H-60},rocks=[],t0=0,over=false,raf,last=performance.now(),spawn=0,started=false;const keys={};
+      stage.innerHTML=`<div class="mega num" id="dt" style="font-size:34px">${fr(0,2)} s</div>${gameCanvas(W,H,"max-height:62vh")}<p class="msg">Garde le doigt ou la souris sur la zone pour déplacer ton point, ou utilise les flèches. Évite les blocs !</p>`;
+      const cv=$("cv"),g=cv.getContext("2d");
+      const loop=now=>{const dt=Math.min(32,now-last)/1000;last=now;
+        if(keys.l)p.x-=300*dt;if(keys.r)p.x+=300*dt;if(keys.u)p.y-=300*dt;if(keys.d)p.y+=300*dt;p.x=Math.max(PR,Math.min(W-PR,p.x));p.y=Math.max(PR,Math.min(H-PR,p.y));
+        if(started&&!over){const el=(now-t0)/1000;$("dt").textContent=fr(el,2)+" s";spawn-=dt;
+          if(spawn<=0){spawn=Math.max(.18,.8-el*.025);const s=18+Math.random()*34;rocks.push({x:Math.random()*(W-s),y:-s,s,v:150+el*9+Math.random()*90})}
+          rocks.forEach(r=>r.y+=r.v*dt);rocks=rocks.filter(r=>r.y<H+60);
+          if(rocks.some(r=>p.x+PR>r.x&&p.x-PR<r.x+r.s&&p.y+PR>r.y&&p.y-PR<r.y+r.s)){over=true;stage.classList.add("flash");const s=(now-t0)/1000;later(()=>finish(c,Math.round(s*100)/100),700)}}
+        g.clearRect(0,0,W,H);g.fillStyle="#ff6b8a";g.shadowColor="#ff6b8a";g.shadowBlur=10;rocks.forEach(r=>g.fillRect(r.x,r.y,r.s,r.s));
+        g.fillStyle="#5ee6a8";g.shadowColor="#5ee6a8";g.beginPath();g.arc(p.x,p.y,PR,0,7);g.fill();g.shadowBlur=0;raf=requestAnimationFrame(loop)};
+      raf=requestAnimationFrame(loop);cleanup.push(()=>{over=true;cancelAnimationFrame(raf)});
+      const start=()=>{if(!started){started=true;t0=performance.now()}};
+      cv.onpointerdown=e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(_){}const q=cvPoint(cv,e);p.x=q.x;p.y=q.y;start()};
+      cv.onpointermove=e=>{if(e.buttons||e.pointerType==="mouse"){const q=cvPoint(cv,e);if(started||e.buttons){p.x=q.x;p.y=q.y}}};
+      const M={ArrowLeft:"l",ArrowRight:"r",ArrowUp:"u",ArrowDown:"d"};
+      const kd=e=>{if(M[e.code]){keys[M[e.code]]=1;e.preventDefault();start()}};const ku=e=>{if(M[e.code])keys[M[e.code]]=0};
+      document.addEventListener("keydown",kd);document.addEventListener("keyup",ku);cleanup.push(()=>{document.removeEventListener("keydown",kd);document.removeEventListener("keyup",ku)});
+    });
+  },
+  "n-zone"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); let streak=0,pos=0,dir=1,speed=.55,zw=.3,zx=.35,over=false,raf,last=performance.now(),lock=false;
+      stage.innerHTML=`<div class="msg">Série : <b class="mega num" id="zs" style="font-size:34px">0</b></div><div class="zonebar"><div class="zonegreen" id="zg"></div><div class="zonecur" id="zc"></div></div>
+        <button class="btn solid" id="zb" style="font-size:20px;padding:16px 34px">STOP</button><p class="msg">Arrête le curseur dans la zone verte. Elle rétrécit à chaque réussite.</p>`;
+      const zg=$("zg"),zc=$("zc");
+      const setZone=()=>{zx=Math.random()*(1-zw);zg.style.left=(zx*100)+"%";zg.style.width=(zw*100)+"%"};setZone();
+      const loop=now=>{const dt=Math.min(32,now-last)/1000;last=now;if(!over&&!lock){pos+=dir*speed*dt;if(pos>1){pos=1;dir=-1}if(pos<0){pos=0;dir=1}zc.style.left=(pos*100)+"%"}raf=requestAnimationFrame(loop)};
+      raf=requestAnimationFrame(loop);cleanup.push(()=>{over=true;cancelAnimationFrame(raf)});
+      const stop=()=>{if(over||lock)return;
+        if(pos>=zx&&pos<=zx+zw){streak++;$("zs").textContent=streak;zg.classList.add("hit");lock=true;
+          later(()=>{zg.classList.remove("hit");zw=Math.max(.035,zw*.86);speed=Math.min(2.2,speed*1.07);setZone();lock=false},300)}
+        else{over=true;zc.classList.add("miss");later(()=>finish(c,streak),800)}};
+      $("zb").onclick=stop;
+      const kd=e=>{if(e.code==="Space"){e.preventDefault();stop()}};document.addEventListener("keydown",kd);cleanup.push(()=>document.removeEventListener("keydown",kd));
+    });
+  },
+  "n-clock"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); let score=0,start=0,iv,done=false,ans="";
+      const pad=n=>String(n).padStart(2,"0");
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(30,2)}</div><svg id="clk" viewBox="0 0 200 200" class="clocksvg"></svg>
+        <div class="clockopts notr" id="co"></div><p class="msg">Score : <b class="num" id="sc">0</b> · quelle heure est-il ?</p>`;
+      const next=()=>{const h=1+Math.floor(Math.random()*12),m=Math.floor(Math.random()*12)*5;ans=pad(h)+":"+pad(m);
+        const ha=((h%12)+m/60)*30,ma=m*6,hand=(a,l,w,col)=>`<line x1="100" y1="100" x2="${100+l*Math.sin(a*Math.PI/180)}" y2="${100-l*Math.cos(a*Math.PI/180)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+        $("clk").innerHTML=`<circle cx="100" cy="100" r="92" fill="#110a1d" stroke="#b04cff" stroke-width="5"/>`+Array.from({length:12},(_,i)=>{const a=i*30*Math.PI/180;return `<line x1="${100+78*Math.sin(a)}" y1="${100-78*Math.cos(a)}" x2="${100+88*Math.sin(a)}" y2="${100-88*Math.cos(a)}" stroke="#efe7fb" stroke-width="${i%3?2:4}"/>`}).join("")+hand(ha,48,7,"#ffc94a")+hand(ma,74,4,"#5fd0ff")+`<circle cx="100" cy="100" r="5" fill="#fff"/>`;
+        const opts=new Set([ans]);while(opts.size<4){const t=Math.random();let hh=h,mm=m;if(t<.35)hh=((h+(Math.random()<.5?1:-1)+11)%12)+1;else if(t<.7)mm=(m+(Math.random()<.5?5:-5)*(1+Math.floor(Math.random()*2))+60)%60;else{hh=(m/5)||12;mm=(h%12)*5}opts.add(pad(hh)+":"+pad(mm))}
+        $("co").innerHTML=[...opts].sort(()=>Math.random()-.5).map(o=>`<button class="btn" data-o="${o}">${o}</button>`).join("")};
+      $("co").onclick=e=>{const b=e.target.closest("[data-o]");if(!b||done)return;
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,30-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,Math.max(0,score)),300)}},50);cleanup.push(()=>clearInterval(iv))}
+        const ok=b.dataset.o===ans;score+=ok?1:-1;$("sc").textContent=score;if(!ok){stage.classList.add("flash");later(()=>stage.classList.remove("flash"),180)}next()};
+      next();
+    });
+  },
+  "n-sum10"(c){
+    intro(c,"Commencer",()=>{
+      clearGame(); let score=0,start=0,iv,done=false,sel=-1,grid=[];
+      const rnd=()=>1+Math.floor(Math.random()*9);
+      const hasPair=()=>{for(let i=0;i<16;i++)for(let j=i+1;j<16;j++)if(grid[i]+grid[j]===10)return true;return false};
+      stage.innerHTML=`<div class="mega num" id="tm" style="font-size:34px">${fr(45,2)}</div><div class="sumgrid notr" id="sg"></div><p class="msg">Touche deux nombres qui font <b>10</b> ensemble · <b class="num" id="sc">0</b> paire(s)</p>`;
+      const render=()=>{$("sg").innerHTML=grid.map((v,i)=>`<button class="sumcell num ${i===sel?"sel":""}" data-i="${i}">${v}</button>`).join("")};
+      do{grid=Array.from({length:16},rnd)}while(!hasPair());render();
+      $("sg").onpointerdown=e=>{const b=e.target.closest("[data-i]");if(!b||done)return;e.preventDefault();const i=+b.dataset.i;
+        if(!start){start=performance.now();iv=setInterval(()=>{const r=Math.max(0,45-(performance.now()-start)/1000);$("tm").textContent=fr(r,2);if(r<=0){clearInterval(iv);done=true;later(()=>finish(c,score),300)}},50);cleanup.push(()=>clearInterval(iv))}
+        if(sel<0||sel===i){sel=sel===i?-1:i;render();return}
+        if(grid[sel]+grid[i]===10){score++;$("sc").textContent=score;grid[sel]=rnd();grid[i]=rnd();let guard=0;while(!hasPair()&&guard++<50)grid[Math.floor(Math.random()*16)]=rnd();if(!hasPair())grid=Array.from({length:16},rnd);sel=-1;render()}
+        else{sel=i;stage.classList.add("flash");later(()=>stage.classList.remove("flash"),150);render()}};
+    });
+  },
+  "n-chain"(c){
+    intro(c,"Commencer",()=>{
+      let lvl=1;
+      const round=()=>{clearGame();const ops=[];let v=2+Math.floor(Math.random()*9);const startV=v;
+        for(let k=0;k<lvl+1;k++){const t=Math.random();let op;
+          if(t<.4){const n=1+Math.floor(Math.random()*9);op=["+",n];v+=n}
+          else if(t<.75&&v>3){const n=1+Math.floor(Math.random()*Math.min(9,v-1));op=["−",n];v-=n}
+          else if(v<=30){const n=2+Math.floor(Math.random()*2);op=["×",n];v*=n}
+          else{const n=1+Math.floor(Math.random()*9);op=["−",n];v-=n}ops.push(op)}
+        stage.innerHTML=`<div class="msg">Niveau ${lvl} · retiens le résultat</div><div class="mega num" id="ch">${startV}</div><div class="barwrap"><div class="bar" id="bar"></div></div>`;
+        const SP=Math.max(650,1300-lvl*60);let k=0;
+        const show=()=>{if(k<ops.length){$("ch").textContent=ops[k][0]+" "+ops[k][1];$("ch").classList.remove("pop");void $("ch").offsetWidth;$("ch").classList.add("pop");k++;later(show,SP)}
+          else{stage.innerHTML=`<div class="msg">Quel est le résultat ?</div><input id="ci" class="typeIn num" type="text" inputmode="numeric" autocomplete="off" aria-label="Ta réponse" style="max-width:180px;text-align:center;font-size:28px"><button class="btn solid" id="cv">Valider</button>`;
+            const inp=$("ci");inp.focus();const go=()=>{const a=parseInt(inp.value.replace("−","-"),10);if(isNaN(a))return;
+              if(a===v){lvl++;round()}else finish(c,lvl-1,"Le résultat était "+v)};$("cv").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()}}};
+        later(show,SP)};
+      round();
     });
   }
 };
