@@ -148,7 +148,15 @@ begin
       'attempts', (select count(*) from att),
       'aura_posts', (select count(*) from public.aura_posts),
       'leagues', (select count(*) from public.leagues),
-      'custom_challenges', (select count(*) from public.challenges)
+      'custom_challenges', (select count(*) from public.challenges),
+      'coins_earned', (select coalesce(sum(delta), 0) from public.coin_log where delta > 0 and user_id not in (select user_id from admins)),
+      'coins_earned_period', (select coalesce(sum(delta), 0) from public.coin_log
+                              where delta > 0 and (created_at at time zone 'Europe/Paris')::date >= d0
+                                and user_id not in (select user_id from admins)),
+      'site_records_beaten', (select count(*) from public.coin_log where reason = 'record_site' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'personal_records_beaten', (select count(*) from public.coin_log where reason = 'record_perso' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'attempts_bought', (select count(*) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0),
+      'buyers', (select count(distinct user_id) from public.coin_log where reason = 'essai' and (created_at at time zone 'Europe/Paris')::date >= d0)
     ),
 
     'daily', (select coalesce(json_agg(json_build_object(
