@@ -15,9 +15,9 @@ window.WUR_CONFIG = {
 
   // --- Pass Néon (abonnement Stripe) ---
   passPrice: "2,99 €",
-  stripePaymentLink: "", // lien de paiement Stripe MENSUEL, ex. "https://buy.stripe.com/xxxxxxxx"
+  stripePaymentLink: "https://buy.stripe.com/test_4gM6oI6HUexgb9Pauq67S00", // lien de paiement Stripe MENSUEL, ex. "https://buy.stripe.com/xxxxxxxx"
   passPriceYearly: "24,99 €",
-  stripePaymentLinkYearly: "", // lien de paiement Stripe ANNUEL (laisse vide pour ne proposer que le mensuel)
+  stripePaymentLinkYearly: "https://buy.stripe.com/test_aFa9AU0jwah06Tz6ea67S01", // lien de paiement Stripe ANNUEL (laisse vide pour ne proposer que le mensuel)
   stripePortalLink: "",  // lien du portail client Stripe, ex. "https://billing.stripe.com/p/login/xxxxxxxx"
 
   // --- Anti-robot Cloudflare Turnstile (recommandé) ---
