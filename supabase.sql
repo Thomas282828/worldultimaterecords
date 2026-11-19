@@ -1155,6 +1155,55 @@ drop trigger if exists attempts_award on public.attempts;
 create trigger attempts_award after insert or update of status on public.attempts
   for each row execute function public.attempt_award();
 
+-- 12e-bis) Anti-triche : heure de début de chaque partie officielle
+create table if not exists public.attempt_starts (
+  id         bigint generated always as identity primary key,
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  challenge  text not null,
+  started_at timestamptz not null default now(),
+  used       boolean not null default false
+);
+create index if not exists attempt_starts_idx on public.attempt_starts (user_id, challenge, used, started_at desc);
+alter table public.attempt_starts enable row level security;   -- aucune règle : seules les fonctions du serveur y accèdent
+delete from public.attempt_starts where started_at < now() - interval '3 days';
+
+-- Durée minimale réaliste d'une partie (en secondes) pour chaque jeu du navigateur
+create or replace function public.web_min_seconds(p_challenge text, p_value double precision) returns double precision
+language sql immutable as $$
+  select greatest(
+    case p_challenge
+      when 'clicks' then 9 when 'alternate' then 9 when 'chrono' then 9.5
+      when 'mental' then 28 when 'stroop' then 28 when 'odd' then 28 when 'mole' then 28
+      when 'truefalse' then 28 when 'n-clock' then 28 when 'runner' then 18 when 'n-sum10' then 43
+      else 2 end,
+    -- jeux dont le score est un temps réel : la partie ne peut pas durer moins que ce temps
+    case when p_challenge in ('alphabet','typing','steady','seq25','pairs','maze','slide','tightrope','n-dodge')
+         then p_value * 0.9 else 0 end)
+$$;
+
+-- Un score navigateur n'est accepté que si la partie a duré assez longtemps
+create or replace function public.attempt_check_time() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare s_id bigint; s_at timestamptz; need double precision;
+begin
+  if new.status <> 'auto' then return new; end if;
+  select id, started_at into s_id, s_at from public.attempt_starts
+  where user_id = new.user_id and challenge = new.challenge and not used and started_at > now() - interval '2 days'
+  order by started_at desc limit 1;
+  if s_id is null then
+    raise exception 'Score refusé : aucune partie en cours sur ce défi. Rejoue la partie.' using errcode = 'P0001';
+  end if;
+  need := public.web_min_seconds(new.challenge, new.value);
+  if extract(epoch from now() - s_at) < need then
+    raise exception 'Score refusé : la partie a été trop rapide. Joue la partie en entier.' using errcode = 'P0001';
+  end if;
+  update public.attempt_starts set used = true where id = s_id;
+  return new;
+end $$;
+drop trigger if exists attempts_check_time on public.attempts;
+create trigger attempts_check_time before insert on public.attempts
+  for each row execute function public.attempt_check_time();
+
 -- 12e) Démarrer un essai : 3 gratuits par défi et par jour, puis 5 pièces l'essai
 drop function if exists public.start_attempt(text);
 create or replace function public.start_attempt(p_challenge text, p_use_coins boolean default false) returns json
@@ -1182,6 +1231,7 @@ begin
   end if;
   insert into public.daily_usage (user_id, challenge, day, started) values (u, p_challenge, public.paris_today(), 1)
   on conflict (user_id, challenge, day) do update set started = public.daily_usage.started + 1;
+  insert into public.attempt_starts (user_id, challenge) values (u, p_challenge);
   return json_build_object('ok', true, 'remaining', case when adm then -1 else greatest(0, 2 - cur) end,
                            'coins', bal, 'price', price, 'member', adm);
 end $$;
