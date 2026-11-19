@@ -1,3 +1,5 @@
+/* Sécurité : le site refuse d'être affiché dans le cadre d'un autre site (anti-clickjacking) */
+if(window.top!==window.self){try{window.top.location.replace(window.location.href)}catch(e){document.documentElement.style.display="none"}}
 /* WorldUltimateRecords — app (GitHub Pages + Supabase) */
 (function(){
 "use strict";
@@ -356,6 +358,7 @@ const DB={
     if(error){toast("Enregistrement impossible : "+(/row-level security/.test(error.message)?"limite de 40 tentatives par heure atteinte, ou session expirée. Réessaie plus tard.":error.message));return false}
     track("save",{c:o.c,v:+o.v}); await this.refresh();
     if(coins>before)toast(`Bravo ! +${coins-before} pièces`);
+    else if(o.status==="auto"){const last=attempts.filter(x=>x.uid===myId&&x.c===o.c).sort((x,y)=>y.t-x.t)[0];if(last&&last.status==="pending")toast("Score exceptionnel ! Il sera vérifié avant d'entrer au classement.")}
     return true;
   },
   async addComment(cid,body){
@@ -723,7 +726,7 @@ function renderMod(){
   if(panel.dataset.sig===sig)return; panel.dataset.sig=sig;
   const item=(a,extra)=>`<div class="mod-item">
     ${a.vid?`<video src="${esc(a.vid)}" controls playsinline preload="metadata"></video>`:`<div class="empty">Pas de vidéo</div>`}
-    <div>${members.has(a.uid)?'<span class="badge">Prioritaire</span> ':""}${plink(a)} · ${esc(CHM[a.c].name)}<br><span class="num" style="color:var(--gold)">${esc(CHM[a.c].fmt(a.v))}</span>${a.code?` · code <span class="num">${esc(a.code)}</span>`:""}</div>
+    <div>${CHM[a.c].kind==="web"?'<span class="badge pend">Score suspect à vérifier</span> ':""}${plink(a)} · ${esc(CHM[a.c].name)}<br><span class="num" style="color:var(--gold)">${esc(CHM[a.c].fmt(a.v))}</span>${a.code?` · code <span class="num">${esc(a.code)}</span>`:""}</div>
     ${extra}</div>`;
   $("modPending").innerHTML=pend.length?pend.map(a=>item(a,`<div class="row" style="justify-content:flex-start">
       <button class="btn sm good" data-verdict="ok" data-id="${esc(a.id)}">Valider</button><button class="btn sm bad" data-verdict="no" data-id="${esc(a.id)}">Refuser</button>${a.vid?`<button class="btn sm gold" data-short="${esc(a.id)}">Créer le Short</button>`:""}</div>`)).join("")

@@ -1,3 +1,5 @@
+/* Sécurité : le site refuse d'être affiché dans le cadre d'un autre site (anti-clickjacking) */
+if(window.top!==window.self){try{window.top.location.replace(window.location.href)}catch(e){document.documentElement.style.display="none"}}
 /* =====================================================================
    WorldUltimateRecords : page admin (statistiques)
    Les données ne sont lisibles que par le compte admin : la fonction

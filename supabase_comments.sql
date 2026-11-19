@@ -45,6 +45,10 @@ begin
   end if;
   new.pseudo := p;
   new.body := btrim(new.body);
+  -- Pas de liens (arnaques, hameçonnage, pub)
+  if new.body ~* '(https?://|www\.|[a-z0-9-]+\.(com|net|org|fr|io|xyz|ru|ly|gg|me|tk|link|click|top|shop|app|co)(/|\s|$))' then
+    raise exception 'Les liens ne sont pas autorisés dans les commentaires.' using errcode = 'P0001';
+  end if;
   new.created_at := now();
   return new;
 end $$;

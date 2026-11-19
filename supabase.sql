@@ -1110,6 +1110,24 @@ begin
   from public.attempts
   where user_id <> new.user_id and challenge = new.challenge and status in ('auto','ok') and not hidden;
 
+  -- Anti-triche : un score navigateur « trop beau » (plus du double du record du site,
+  -- ou moins de la moitié quand le plus bas gagne) part en vérification au lieu d'entrer
+  -- directement au classement. L'admin le valide ou le refuse ; les pièces arrivent à la validation.
+  if tg_op = 'INSERT' and new.status = 'auto' and (
+       (dir = 'low' and new.value <= 0)
+    -- limites humaines connues (au-delà : autoclicker ou faux score)
+    or (new.challenge = 'clicks' and new.value > 200)      -- 20 clics/s pendant 10 s
+    or (new.challenge = 'alternate' and new.value > 250)   -- 25 touches/s pendant 10 s
+    or (new.challenge = 'reaction' and new.value < 100)    -- moins de 100 ms de moyenne
+    or (new.challenge = 'alphabet' and new.value < 1)      -- 26 lettres en moins d'1 s
+    or (others_best is not null and others_best > 0 and
+        (case when dir = 'low' then new.value < others_best * 0.5
+              else new.value > others_best * 2 and new.value - others_best >= 5 end))
+  ) then
+    update public.attempts set status = 'pending' where id = new.id;
+    return new;
+  end if;
+
   if others_best is not null
      and (case when dir = 'low' then new.value < others_best else new.value > others_best end)
      and (own_best is null or (case when dir = 'low' then own_best >= others_best else own_best <= others_best end)) then
@@ -1213,6 +1231,10 @@ begin
   end if;
   new.pseudo := p;
   new.body := btrim(new.body);
+  -- Pas de liens (arnaques, hameçonnage, pub)
+  if new.body ~* '(https?://|www\.|[a-z0-9-]+\.(com|net|org|fr|io|xyz|ru|ly|gg|me|tk|link|click|top|shop|app|co)(/|\s|$))' then
+    raise exception 'Les liens ne sont pas autorisés dans les commentaires.' using errcode = 'P0001';
+  end if;
   new.created_at := now();
   return new;
 end $$;
