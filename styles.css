@@ -527,3 +527,15 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .cmt-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
 .cmt-h .btn{margin-left:auto}
 .cmts p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+
+/* ---- commentaires sous les vidéos ---- */
+.modal-box.withcmts{max-height:calc(100vh - 32px);overflow-y:auto;width:min(100%,520px);padding-right:4px}
+.modal-box.withcmts .frame{max-height:44vh;flex:none}
+.modalcmts{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.modalcmts h3{margin:0 0 4px;font-size:16px}
+.modalcmts .cmtform{margin:8px 0 12px}
+.aurameta .cmtlink{display:inline-block;margin-top:4px;font-size:13px}
+.side button[data-cmtopen] small{position:absolute;right:-4px;top:-4px;min-width:16px;font-size:10px;line-height:16px;border-radius:8px;background:var(--neon,#b04cff);color:#fff;padding:0 4px}
+.side button[data-cmtopen] small:empty{display:none}
+.side button[data-cmtopen]{position:relative}
+.cmtlink::before{content:"💬 "}

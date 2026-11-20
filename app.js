@@ -363,15 +363,15 @@ const DB={
   },
   async addComment(cid,body){
     if(!(await this.ensureProfile()))return false;
-    if(!live){comments.unshift({id:"lc"+Date.now(),challenge:cid,user_id:myId,pseudo:pseudoIn.value.trim()||"Moi",body,created_at:new Date().toISOString()});lsSet("wur_comments",comments.slice(0,500));renderAll();return true}
+    if(!live){comments.unshift({id:"lc"+Date.now(),challenge:cid,user_id:myId,pseudo:pseudoIn.value.trim()||"Moi",body,created_at:new Date().toISOString()});lsSet("wur_comments",comments.slice(0,500));renderAll();refreshCmtLists();return true}
     const {error}=await sb.from("comments").insert({challenge:cid,body});
     if(error){toast(/row-level security/.test(error.message)?"Tu commentes trop vite : réessaie dans quelques minutes.":"Commentaire impossible : "+error.message);return false}
-    track("comment",{c:cid}); await this.refresh(); return true;
+    track("comment",{c:/^[av]-/.test(cid)?null:cid}); await this.refresh(); refreshCmtLists(); return true;
   },
   async delComment(id){
     if(live){const {error}=await sb.from("comments").delete().eq("id",id);if(error){toast("Suppression impossible : "+error.message);return}}
     comments=comments.filter(x=>x.id!==id); if(!live)lsSet("wur_comments",comments.slice(0,500));
-    toast("Commentaire supprimé."); renderAll();
+    toast("Commentaire supprimé."); renderAll(); refreshCmtLists();
   },
   async uploadVideo(blob,ext){
     if(!live)return {path:null,localUrl:URL.createObjectURL(blob)};
@@ -667,7 +667,7 @@ function renderFeed(){
     if(it.kind==="video")return `<article class="short"><video src="${esc(it.a.vid)}" muted loop playsinline preload="metadata"></video><div class="shade"></div>
       <span class="tag ${it.a.status==="ok"?"gold":""}">${it.a.status==="ok"?"Vidéo validée":"En vérification"} · ${esc(ago(it.a.t))}</span>
       <div class="big ${flags.has(it.a.id)?"gold":""}">${esc(c.fmt(it.a.v))}</div><div class="meta"><b>${plink(it.a)}</b> sur <b>${esc(c.name)}</b></div>
-      <button class="btn cta" data-play="${esc(c.id)}">À ton tour</button>${side(c.id,it.a.uid!==myId?it.a.id:null)}</article>`;
+      <button class="btn cta" data-play="${esc(c.id)}">À ton tour</button>${side(c.id,it.a.uid!==myId?it.a.id:null,"v-"+it.a.id)}</article>`;
     if(it.kind==="wr")return `<article class="short" data-tone="wr" data-cid="${esc(c.id)}"><canvas></canvas><div class="shade"></div><span class="tag wr">Record du monde</span>
       <div class="big wr">${esc(c.fmt(c.wr.v))}</div><div class="meta"><b>${esc(c.wr.who)}</b> (${esc(c.wr.where)}) détient le record du monde de <b>${esc(c.name)}</b>${c.wr.when?", depuis le "+esc(c.wr.when):""}.</div>
       ${c.wr.video?`<button class="playbig" data-inline="${esc(c.id)}">${PLAY}<span>Regarder le record<small>${esc(c.wr.video.label)}</small></span></button>`:""}
@@ -681,7 +681,7 @@ function renderFeed(){
   }).join("");
   setupObserver();
 }
-function side(cid,aid){return `<div class="side">${aid?`<button data-report="${esc(aid)}" aria-label="Signaler cette vidéo"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></button><small>Signaler</small>`:""}
+function side(cid,aid,ckey){ckey=ckey||cid;return `<div class="side"><button data-cmtopen="${esc(ckey)}" aria-label="Commentaires"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg><small>${cmtCount(ckey)||""}</small></button><small>Avis</small>${aid?`<button data-report="${esc(aid)}" aria-label="Signaler cette vidéo"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></button><small>Signaler</small>`:""}
   <button data-play="${esc(cid)}" aria-label="Jouer"><svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg></button><small>Jouer</small>
   <button data-goto="c-${esc(cid)}" aria-label="Voir le classement complet"><svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/></svg></button><small>Top</small>
   <button data-share="1" aria-label="Partager le site"><svg viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></button><small>Partager</small></div>`}
@@ -761,7 +761,7 @@ function auraPoints(uid){return auraPosts.filter(p=>p.uid===uid&&auraOk(p)).redu
 function auraDuelEnd(reply){return (reply.dec||reply.t)+AURA_DAYS*864e5}
 function auraVid(p,cls){return p.vid?`<video class="${cls||""}" src="${esc(p.vid)}" controls playsinline preload="metadata"></video>`
   :`<div class="auraph ${cls||""}"><span>${esc(p.emo||"✦")}</span><small>Vidéo d'exemple</small></div>`}
-function auraHead(p){return `<div class="aurameta"><b class="notr">${esc(p.title)}</b><span>${plink(p)} · <span>${esc(ago(p.t))}</span>${p.uid!==myId?` · <a href="#" class="muted" data-aurareport="${esc(p.id)}">signaler</a>`:""}</span></div>`}
+function auraHead(p){return `<div class="aurameta"><b class="notr">${esc(p.title)}</b><span>${plink(p)} · <span>${esc(ago(p.t))}</span>${p.uid!==myId?` · <a href="#" class="muted" data-aurareport="${esc(p.id)}">signaler</a>`:""}</span>${String(p.id).startsWith("base")||!p.vid?"":`<a href="#" class="cmtlink" data-cmtopen="a-${esc(p.id)}">${cmtLabel("a-"+p.id)}</a>`}</div>`}
 function auraSoloCard(p){
   const n=(auraTally(p.id)[p.id]||0),mine=auraMyVote(p.id)===p.id,own=p.uid===myId,loss=p.side==="loss";
   return `<article class="aurapost ${loss?"loss":"gain"}">${auraVid(p)}<span class="sidetag ${loss?"bad":"good"}">${loss?"Perd de l'aura":"Gagne de l'aura"}</span>${auraHead(p)}
@@ -1058,6 +1058,8 @@ function notifItems(){
     if(a.status==="no")out.push({k:"no-"+a.id,t:`Ta vidéo « ${CHM[a.c].name} » a été refusée.`,h:"#profil"})}
   for(const c of CH){const top=boardFor(c.id)[0]; if(!top||top.uid===myId)continue;
     if(mine.some(a=>a.c===c.id&&flags.has(a.id)))out.push({k:"beat-"+top.id,t:`${top.pseudo} a battu ton record sur « ${c.name} » : ${c.fmt(top.v)}`,h:"#c-"+c.id})}
+  {const myV=new Set(mine.filter(a=>a.vid).map(a=>"v-"+a.id).concat(auraPosts.filter(p=>p.uid===myId).map(p=>"a-"+p.id)));
+    for(const x of comments)if(myV.has(x.challenge)&&x.user_id!==myId)out.push({k:"cm-"+x.id,t:`${x.pseudo} a commenté ta vidéo : « ${String(x.body).slice(0,60)} »`,h:x.challenge.startsWith("a-")?"#aura":"#profil"})}
   for(const p of auraPosts.filter(x=>x.uid===myId)){
     if(p.status==="ok")out.push({k:"aok-"+p.id,t:`Ta vidéo d'aura « ${p.title} » a été validée !`,h:"#aura"});
     if(p.status==="no")out.push({k:"ano-"+p.id,t:`Ta vidéo d'aura « ${p.title} » a été refusée.`,h:"#profil"});
@@ -1215,26 +1217,45 @@ function renderRanking(){
   renderComments(c);
 }
 
-/* ================= commentaires sous chaque défi ================= */
-function cmtCount(cid){let k=0;for(const x of comments)if(x.challenge===cid)k++;return k}
-function cmtLabel(cid){const k=cmtCount(cid);return k?(k>1?k+" commentaires":"1 commentaire"):"Commenter"}
+/* ================= commentaires (défis, vidéos de records, vidéos d'aura) ================= */
+// clé : id du défi, « v-<id tentative> » pour une vidéo de record, « a-<id vidéo d'aura> » pour une vidéo d'aura
+function cmtCount(key){let k=0;for(const x of comments)if(x.challenge===key)k++;return k}
+function cmtLabel(key){const k=cmtCount(key);return k?(k>1?k+" commentaires":"1 commentaire"):"Commenter"}
+function cmtBlock(key,big){
+  return `<div class="cmtwrap" data-cmtkey="${esc(key)}"><${big?'h2 id="cmts" style="margin-top:32px"':'h3'}>Commentaires</${big?"h2":"h3"}>
+    <form class="cmtform" data-cmtform="${esc(key)}"><textarea class="field" maxlength="400" rows="3" required placeholder="Écris un commentaire…"></textarea>
+      <div class="row cmtrow"><span class="msg">Sois sympa : les commentaires méchants ou insultants sont supprimés.</span><button class="btn solid" type="submit">Publier</button></div></form>
+    <div class="cmtlist" data-cmtlist="${esc(key)}">${cmtListHtml(key)}</div></div>`;
+}
+function cmtListHtml(key){
+  const list=comments.filter(x=>x.challenge===key);
+  return list.length?`<ul class="cmts">${list.slice(0,200).map(x=>`<li><div class="cmt-h">${plink({uid:x.user_id,pseudo:x.pseudo})}<span class="msg">${esc(ago(Date.parse(x.created_at)))}</span>${x.user_id===myId||isAdmin?`<button class="btn sm ghost" type="button" data-cmtdel="${esc(x.id)}">Supprimer</button>`:""}</div><p class="notr">${esc(x.body)}</p></li>`).join("")}</ul>`
+    :`<div class="empty">${/^[av]-/.test(key)?"Sois le premier à commenter cette vidéo.":"Sois le premier à commenter ce défi."}</div>`;
+}
+// met à jour toutes les listes affichées (sans toucher aux textes en cours d'écriture)
+function refreshCmtLists(){document.querySelectorAll("[data-cmtlist]").forEach(el=>{el.innerHTML=cmtListHtml(el.dataset.cmtlist)});
+  document.querySelectorAll("[data-cmtopen]").forEach(el=>{const s=el.querySelector("small");if(s)s.textContent=cmtCount(el.dataset.cmtopen)||"";else el.textContent=cmtLabel(el.dataset.cmtopen)})}
 function renderComments(c){
   const box=$("cmtBox"); if(!box)return;
   if(!c){box.innerHTML="";cmtFor=null;return}
-  if(cmtFor!==c.id||!$("cmtList")){
-    cmtFor=c.id;
-    box.innerHTML=`<h2 id="cmts" style="margin-top:32px">Commentaires</h2>
-      <form class="cmtform" id="cmtForm"><textarea class="field" id="cmtText" maxlength="400" rows="3" required placeholder="Écris un commentaire…"></textarea>
-        <div class="row cmtrow"><span class="msg">Sois sympa : les commentaires méchants ou insultants sont supprimés.</span><button class="btn solid" type="submit" id="cmtSend">Publier</button></div></form>
-      <div id="cmtList"></div>`;
-    $("cmtForm").onsubmit=async e=>{e.preventDefault();const ta=$("cmtText"),b=$("cmtSend"),body=ta.value.trim();if(!body)return;
-      b.disabled=true;const ok=await DB.addComment(c.id,body);b.disabled=false;if(ok){ta.value="";toast("Commentaire publié.")}};
-  }
-  const list=comments.filter(x=>x.challenge===c.id);
-  $("cmtList").innerHTML=list.length?`<ul class="cmts">${list.slice(0,200).map(x=>`<li><div class="cmt-h">${plink({uid:x.user_id,pseudo:x.pseudo})}<span class="msg">${esc(ago(Date.parse(x.created_at)))}</span>${x.user_id===myId||isAdmin?`<button class="btn sm ghost" type="button" data-cmtdel="${esc(x.id)}">Supprimer</button>`:""}</div><p class="notr">${esc(x.body)}</p></li>`).join("")}</ul>`
-    :`<div class="empty">Sois le premier à commenter ce défi.</div>`;
+  if(cmtFor!==c.id||!box.querySelector("[data-cmtlist]")){cmtFor=c.id;box.innerHTML=cmtBlock(c.id,true)}
+  else refreshCmtLists();
   if(cmtScroll){cmtScroll=false;setTimeout(()=>{const h=$("cmts");if(h)h.scrollIntoView({behavior:"smooth",block:"start"})},60)}
 }
+// fenêtre : une vidéo (facultative) et ses commentaires
+function openComments(key,title){
+  $("modalTitle").textContent=title||"Commentaires";
+  const f=$("modalFrame"); f.innerHTML=""; f.hidden=true; $("modalLink").hidden=true;
+  const mc=$("modalCmts"); mc.innerHTML=cmtBlock(key,false); mc.hidden=false; $("modal").querySelector(".modal-box").classList.add("withcmts");
+  $("modal").hidden=false; document.querySelectorAll(".short video").forEach(v=>v.pause());
+}
+function addVideoComments(key){const mc=$("modalCmts");mc.innerHTML=cmtBlock(key,false);mc.hidden=false;$("modal").querySelector(".modal-box").classList.add("withcmts")}
+document.addEventListener("submit",async e=>{
+  const fm=e.target.closest&&e.target.closest("form[data-cmtform]"); if(!fm)return; e.preventDefault();
+  const ta=fm.querySelector("textarea"),b=fm.querySelector("button[type=submit]"),body=ta.value.trim(); if(!body)return;
+  b.disabled=true; const ok=await DB.addComment(fm.dataset.cmtform,body); b.disabled=false;
+  if(ok){ta.value="";toast("Commentaire publié.");refreshCmtLists()}
+});
 
 /* ================= partage : carte de score + Short automatique ================= */
 const siteUrl=()=>location.origin+location.pathname;
@@ -1520,15 +1541,15 @@ showTab(location.hash.slice(1)||"defis");
 /* ================= video modal ================= */
 const modal=$("modal");
 function openVideo(title,src,shape,link){
-  $("modalTitle").textContent=title;
-  const f=$("modalFrame"); f.className="frame"+(shape==="h"?" wide":"");
+  $("modalTitle").textContent=title; const mc0=$("modalCmts"); if(mc0){mc0.innerHTML="";mc0.hidden=true} modal.querySelector(".modal-box").classList.remove("withcmts");
+  const f=$("modalFrame"); f.hidden=false; f.className="frame"+(shape==="h"?" wide":"");
   f.innerHTML=src.kind==="iframe"
     ?`<iframe src="${esc(src.url)}" title="${esc(title)}" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`
     :`<video src="${esc(src.url)}" controls autoplay playsinline></video>`;
   const l=$("modalLink"); l.hidden=!link; if(link)l.href=link;
   modal.hidden=false; document.querySelectorAll(".short video").forEach(v=>v.pause());
 }
-function closeVideo(){modal.hidden=true;$("modalFrame").innerHTML=""}
+function closeVideo(){modal.hidden=true;$("modalFrame").innerHTML="";$("modalFrame").hidden=false;const mc=$("modalCmts");if(mc){mc.innerHTML="";mc.hidden=true}modal.querySelector(".modal-box").classList.remove("withcmts")}
 $("modalClose").onclick=closeVideo;
 modal.addEventListener("click",e=>{if(e.target===modal)closeVideo()});
 
@@ -1566,7 +1587,8 @@ document.addEventListener("click",async e=>{
     dl.disabled=true;if(await DB.deleteAttempt(dl.dataset.del))toast("Tentative supprimée");return}
   const hd=e.target.closest("[data-hide]"); if(hd){hd.disabled=true;if(await DB.setHidden(hd.dataset.hide,true))toast("Vidéo masquée");return}
   const uh=e.target.closest("[data-unhide]"); if(uh){uh.disabled=true;if(await DB.setHidden(uh.dataset.unhide,false))toast("Vidéo rétablie");return}
-  const pv=e.target.closest("[data-pvid]"); if(pv){e.preventDefault();const a=attempts.find(x=>x.id===pv.dataset.pvid);if(a&&a.vid)openVideo(a.pseudo+" · "+CHM[a.c].fmt(a.v),{kind:"video",url:a.vid},"v",null);return}
+  const co=e.target.closest("[data-cmtopen]"); if(co){e.preventDefault();const k=co.dataset.cmtopen;openComments(k,/^v-/.test(k)?"Commentaires de la vidéo":/^a-/.test(k)?"Commentaires de la vidéo d'aura":"Commentaires du défi");return}
+  const pv=e.target.closest("[data-pvid]"); if(pv){e.preventDefault();const a=attempts.find(x=>x.id===pv.dataset.pvid);if(a&&a.vid){openVideo(a.pseudo+" · "+CHM[a.c].fmt(a.v),{kind:"video",url:a.vid},"v",null);addVideoComments("v-"+a.id)}return}
   const cl=e.target.closest("[data-close]"); if(cl){closeArena()}
   const p=e.target.closest("[data-play]"); if(p){openArena(p.dataset.play);return}
   const ch=e.target.closest("[data-chip]"); if(ch){filterC=ch.dataset.chip;renderRecords();return}

@@ -315,7 +315,7 @@ async function loadAdminComments(){
     if(error){box.innerHTML=`<p class="msg">Commentaires indisponibles : ${esc(error.message)}</p>`;return} rows=data||[]}
   box.innerHTML=rows.length?`<div class="tablewrap"><table><thead><tr><th>Quand</th><th>Jeu</th><th>Pseudo</th><th>Commentaire</th><th></th></tr></thead><tbody>
     ${rows.map(r=>`<tr><td>${esc(new Date(r.created_at).toLocaleString("fr-FR",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}</td>
-      <td><a href="./#c-${esc(r.challenge)}" target="_blank" rel="noopener">${esc(gname(r.challenge))}</a></td><td>${esc(r.pseudo)}</td>
+      <td>${/^v-/.test(r.challenge)?"Vidéo de record":/^a-/.test(r.challenge)?"Vidéo d'aura":`<a href="./#c-${esc(r.challenge)}" target="_blank" rel="noopener">${esc(gname(r.challenge))}</a>`}</td><td>${esc(r.pseudo)}</td>
       <td style="white-space:normal;min-width:220px">${esc(r.body)}</td><td><button class="btn" data-delcmt="${esc(r.id)}">Supprimer</button></td></tr>`).join("")}
     </tbody></table></div>`:`<p class="empty">Aucun commentaire pour l'instant.</p>`;
   box.querySelectorAll("[data-delcmt]").forEach(b=>b.onclick=async()=>{
