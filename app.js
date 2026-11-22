@@ -1682,6 +1682,25 @@ document.addEventListener("click",async e=>{
   }
 });
 $("q").addEventListener("input",renderRecords);
+/* ---------- barre de recherche tout en haut : records (défis) et joueurs ---------- */
+{const tq=$("topQ"),tr=$("topRes");
+  const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  const close=()=>{tr.hidden=true;tq.setAttribute("aria-expanded","false")};
+  const goAll=()=>{const v=tq.value.trim();$("q").value=v;close();tq.blur();renderRecords();if(location.hash!=="#records")location.hash="records"};
+  const draw=()=>{const q=norm(tq.value.trim());if(!q){close();return}
+    const tName=c=>norm(c.name)+" "+norm(window.t?window.t(c.name):c.name);
+    const chs=CH.filter(c=>tName(c).includes(q)).slice(0,6);
+    const seen=new Set(),pls=[];for(const a of list()){if(!a.uid||seen.has(a.uid)||!norm(a.pseudo).includes(q))continue;seen.add(a.uid);pls.push(a);if(pls.length>=4)break}
+    let h="";
+    if(chs.length)h+=`<p class="topres-h">Records</p>`+chs.map(c=>{const top=boardFor(c.id)[0];return `<a class="topres-i" href="#c-${esc(c.id)}"><span class="topres-ic">${icon(c)}</span><span class="topres-t"><b>${esc(c.name)}</b><small>${top?`Record du site : <span class="num">${esc(c.fmt(top.v))}</span> · <span class="notr">${esc(top.pseudo)}</span>`:"Aucun record : sois le premier !"}</small></span></a>`}).join("");
+    if(pls.length)h+=`<p class="topres-h">Joueurs</p>`+pls.map(a=>`<a class="topres-i" href="#p-${esc(a.uid)}"><span class="topres-ic topres-av notr">${esc((a.pseudo||"?").slice(0,1).toUpperCase())}</span><span class="topres-t"><b class="notr">${esc(a.pseudo)}</b><small>Voir le profil</small></span></a>`).join("");
+    if(!h)h=`<p class="topres-none">Aucun résultat.</p>`;
+    h+=`<button type="button" class="topres-all" id="topAll">Voir tous les résultats dans Records →</button>`;
+    tr.innerHTML=h;tr.hidden=false;tq.setAttribute("aria-expanded","true");$("topAll").onclick=goAll};
+  tq.addEventListener("input",draw);tq.addEventListener("focus",draw);
+  tq.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();goAll()}else if(e.key==="Escape"){close();tq.blur()}});
+  tr.addEventListener("click",e=>{if(e.target.closest("a.topres-i")){close();tq.blur()}});
+  document.addEventListener("pointerdown",e=>{if(!e.target.closest(".topsearch"))close()})}
 let toastT; function toast(m){const t=$("toast");t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3600)}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(!modal.hidden)closeVideo();else if(!arena.hidden)closeArena()}});
 
@@ -2824,7 +2843,7 @@ function runMoto(c){
   clearGame(); stage.classList.add("top");
   const W=420,H=520,SEG=24,GRAV=1150,HR=12,L=46,LH=Math.hypot(L/2,36),STEP=1/120,best=bestOf(c);
   stage.innerHTML=`<div class="msg"><span class="mega num" id="mm" style="font-size:34px">0</span> points · <span class="num" id="md">0</span> m · saltos <span class="num" id="mf">0</span></div>
-    ${gameCanvas(W,H,"max-height:56vh")}${holdPad([["l","◀","Freiner / pencher en arrière"],["r","▶","Accélérer / pencher en avant"]])}
+    ${gameCanvas(W,H,"max-height:56vh")}${holdPad([["l","◀","Freiner / backflip en l'air"],["r","▶","Accélérer / frontflip en l'air"]])}
     <p class="msg">▶ (ou flèche droite) : accélérer, et en l'air tourner en avant (frontflip). ◀ (ou flèche gauche) : freiner, et en l'air tourner en arrière (backflip). Prends les grands tremplins à fond pour voler au-dessus des trous, enchaîne plusieurs flips dans un même saut pour un énorme bonus, et retombe sur les deux roues pour un atterrissage parfait !</p>`;
   const cv=$("cv"),g=cv.getContext("2d"),keys={};
   bindHold(keys,{ArrowRight:"r",KeyD:"r",ArrowUp:"r",ArrowLeft:"l",KeyA:"l",KeyQ:"l",ArrowDown:"l"});
@@ -2875,8 +2894,9 @@ function runMoto(c){
     if(!over&&go&&(keys.r||turbo>0)){if(hr){const tx=-hr.ny,ty=hr.nx,sp=Math.hypot(rw.x-rw.px,rw.y-rw.py)/STEP,mx=turbo>0?760:560,ac2=turbo>0?1700:950;
         if(sp<mx){rw.px-=tx*ac2*STEP*STEP;rw.py-=ty*ac2*STEP*STEP}}
       if(keys.r){const s=(hr&&hf?0:hr||hf?.3:1.75)*300*STEP*STEP;fw.px-=pxv*s;fw.py-=pyv*s;rw.px+=pxv*s;rw.py+=pyv*s}}
-    if(!over&&go&&keys.l){if(hr||hf){for(const w of [rw,fw]){w.px+=(w.x-w.px)*.025;w.py+=(w.y-w.py)*.025}}
-      const s=(hr&&hf?.25:hr||hf?.55:1.9)*300*STEP*STEP;fw.px+=pxv*s;fw.py+=pyv*s;rw.px-=pxv*s;rw.py-=pyv*s}
+    // ◀ : freine seulement quand les deux roues touchent le sol (au décollage on peut déjà lancer le backflip)
+    if(!over&&go&&keys.l){if(hr&&hf){for(const w of [rw,fw]){w.px+=(w.x-w.px)*.025;w.py+=(w.y-w.py)*.025}}
+      const s=(hr&&hf?.25:hr||hf?.7:2.5)*300*STEP*STEP;fw.px+=pxv*s;fw.py+=pyv*s;rw.px-=pxv*s;rw.py-=pyv*s}
     // en l'air sans toucher aux flèches : la rotation ralentit doucement (atterrir est plus facile)
     if(!hr&&!hf&&!keys.l&&!keys.r){const vr=((fw.x-fw.px)-(rw.x-rw.px))*pxv+((fw.y-fw.py)-(rw.y-rw.py))*pyv,k=vr*.012;fw.px+=pxv*k;fw.py+=pyv*k;rw.px-=pxv*k;rw.py-=pyv*k}
     return {g:!!(hr||hf),both:!!(hr&&hf)}};
