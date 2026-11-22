@@ -544,3 +544,58 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .holdpad{display:flex;gap:10px;justify-content:center;width:100%;max-width:420px;margin:8px auto 0;direction:ltr}
 .holdpad button{flex:1;min-height:58px;border-radius:14px;border:2px solid var(--line);background:var(--surface-2);color:var(--fg);font-size:26px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
 .holdpad button.on{border-color:var(--gold);box-shadow:0 0 16px rgba(255,201,74,.45);background:rgba(255,201,74,.12)}
+
+/* ================= portail de jeux ================= */
+.portal{margin-top:18px;scroll-margin-top:90px}
+.pfeat{--h:275;position:relative;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:20px;align-items:center;min-height:250px;padding:22px;border-radius:22px;overflow:hidden;
+  background:radial-gradient(90% 120% at 0% 0%,hsl(var(--h) 95% 55% / .45),transparent 60%),radial-gradient(70% 90% at 100% 100%,hsl(calc(var(--h) + 60) 95% 55% / .3),transparent 60%),linear-gradient(135deg,hsl(var(--h) 60% 14%),#0b0618);
+  border:1px solid hsl(var(--h) 90% 60% / .45);box-shadow:0 10px 40px hsl(var(--h) 90% 50% / .25)}
+.pfeat-art{position:relative;display:grid;place-items:center;aspect-ratio:1;justify-self:center;width:min(100%,220px);height:auto}
+.pfeat-art .pring{position:absolute;inset:8%;border-radius:50%;border:2px solid hsl(var(--h) 95% 70% / .6);box-shadow:0 0 40px hsl(var(--h) 95% 60% / .6),inset 0 0 40px hsl(var(--h) 95% 60% / .35);animation:pspin 10s linear infinite}
+.pfeat-art .picon{width:52%;height:52%;color:#fff;filter:drop-shadow(0 0 18px hsl(var(--h) 95% 65%))}
+.pfeat-art .picon svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.6}
+.pfeat-txt h2{margin:8px 0 6px;font-size:clamp(26px,4vw,38px);line-height:1.05}
+.pfeat-txt p{margin:0 0 14px;color:var(--fg);opacity:.85;max-width:52ch}
+.btn.big{padding:12px 22px;font-size:17px;display:inline-flex;align-items:center;gap:8px}
+.btn.big svg{width:18px;height:18px;fill:currentColor}
+.pdots{position:absolute;right:16px;bottom:14px;display:flex;gap:6px}
+.pdots button{width:9px;height:9px;padding:0;border-radius:50%;border:0;background:rgba(255,255,255,.35);cursor:pointer}
+.pdots button.on{width:24px;border-radius:6px;background:#fff}
+@keyframes pspin{to{transform:rotate(360deg)}}
+.ptools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:16px 0 4px}
+.psearch{flex:1 1 220px;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);min-height:44px}
+.psearch svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
+.psearch input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:inherit;outline:none;padding:10px 0}
+.psearch:focus-within{border-color:var(--neon,#b04cff);box-shadow:0 0 0 3px rgba(176,76,255,.25)}
+.pcats{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;padding:2px}
+.pcats::-webkit-scrollbar{display:none}
+.pcats button{flex:none;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-size:14px;font-weight:600;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.pcats button.on{background:linear-gradient(135deg,#b04cff,#ff4fd8);border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(176,76,255,.45)}
+.prow{margin-top:22px}
+.prow-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.prow-h h3{margin:0;font-size:20px}
+.plink2{border:0;background:none;color:var(--neon,#b04cff);font:inherit;font-weight:600;cursor:pointer;padding:4px}
+.ptrack{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,170px);gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px;scrollbar-width:thin;
+  -webkit-mask-image:linear-gradient(90deg,#000 90%,transparent);mask-image:linear-gradient(90deg,#000 90%,transparent)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:16px}
+.ptile{--h:275;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px;text-align:left;padding:0;border:0;background:none;color:var(--fg);font:inherit;cursor:pointer;min-width:0}
+.pthumb{position:relative;display:grid;place-items:center;aspect-ratio:4/3;border-radius:16px;overflow:hidden;
+  background:radial-gradient(110% 90% at 25% 15%,hsl(var(--h) 95% 60% / .6),transparent 60%),linear-gradient(140deg,hsl(var(--h) 65% 24%),hsl(calc(var(--h) + 45) 70% 10%));
+  border:1px solid hsl(var(--h) 90% 60% / .35);transition:transform .18s ease,box-shadow .18s ease}
+.pglow{position:absolute;inset:-40%;background:conic-gradient(from 0deg,transparent,hsl(var(--h) 95% 70% / .25),transparent 30%);animation:pspin 6s linear infinite;opacity:.0;transition:opacity .2s}
+.pthumb .picon{position:relative;width:46%;height:46%;color:#fff;filter:drop-shadow(0 0 12px hsl(var(--h) 95% 65%));transition:transform .2s}
+.pthumb .picon svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.7}
+.pplay{position:absolute;right:8px;bottom:8px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;color:#0b0618;opacity:0;transform:scale(.7);transition:.18s}
+.pplay svg{width:16px;height:16px;fill:currentColor;margin-left:2px}
+.pbadge{position:absolute;left:8px;top:8px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;color:#0b0618;background:#ffc94a}
+.pbadge.hot{background:#ff6b8a;color:#fff}
+.pfeat-txt .pbadge{position:static;display:inline-block}
+.pname{font-weight:700;font-size:15px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmeta{font-size:12.5px;color:var(--muted);margin-top:-4px}
+.ptile:hover .pthumb,.ptile:focus-visible .pthumb{transform:translateY(-3px) scale(1.03);box-shadow:0 10px 26px hsl(var(--h) 90% 55% / .45)}
+.ptile:hover .pglow,.ptile:focus-visible .pglow{opacity:1}
+.ptile:hover .picon{transform:scale(1.08)}
+.ptile:hover .pplay,.ptile:focus-visible .pplay{opacity:1;transform:none}
+.ptile:focus-visible{outline:none}.ptile:focus-visible .pthumb{outline:3px solid #fff;outline-offset:2px}
+@media (max-width:640px){.pfeat{grid-template-columns:1fr;text-align:left;padding:18px}.pfeat-art{width:min(55%,150px)}.ptrack{grid-auto-columns:minmax(128px,150px);gap:12px}.pgrid{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}}
+@media (prefers-reduced-motion:reduce){.pfeat-art .pring,.pglow{animation:none}}
