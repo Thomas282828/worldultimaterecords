@@ -615,6 +615,74 @@ function card(c){
     ${c.kind==="vip"&&!isMember()?`<a class="btn solid gold" href="#membre">Réservé au Pass Néon</a>`:`<button class="btn solid" data-play="${esc(c.id)}">${c.kind==="web"?"Tenter le record":"Tenter en vidéo"}</button>`}
   </article>`;
 }
+/* ================= portail de jeux ================= */
+const PCATS=[["all","Tous"],["new","Nouveautés"],["course","Course"],["arcade","Arcade"],["io",".io"],["reflexion","Réflexion"],["reflexes","Réflexes"],["camera","Caméra"]];
+const PCAT_OF={};
+[["course","n-moto n-slide n-drift runner tightrope"],["arcade","n-flappy n-breakout n-snake n-dodge n-juggle n-blocks tower mole stars"],["io","n-arena"],
+ ["reflexion","memory mental n-guess n-chain n-clock n-sum10 odd digits higher truefalse pairs maze slide faces estimate shade pitch"],
+ ["reflexes","reaction clicks aim chrono alternate typing alphabet stroop n-zone steady steadyclick circle rhythm duration angle seq25"]]
+ .forEach(([k,ids])=>ids.split(" ").forEach(id=>PCAT_OF[id]=k));
+const pCatOf=c=>c.kind!=="web"?"camera":PCAT_OF[c.id]||"reflexes";
+const PHUES=[275,320,190,45,150,12,225,95,345,170];
+const pHue=id=>{let h=0;for(const ch of id)h=(h*31+ch.charCodeAt(0))>>>0;return PHUES[h%PHUES.length]};
+let pCat="all",pQuery="",pSig="",pFeatI=0,pFeatT=null;
+function getRecent(){return lsGet("wur_recent",[]).filter(id=>CHM[id]).slice(0,12)}
+function pushRecent(cid){const r=lsGet("wur_recent",[]).filter(x=>x!==cid);r.unshift(cid);lsSet("wur_recent",r.slice(0,20));pSig=""}
+function playsOf(){const m={};for(const a of attempts)m[a.c]=(m[a.c]||0)+1;return m}
+function pTile(c,plays,hot){
+  const p=plays[c.id]||0,isNew=c.batch&&c.batch===LATEST_BATCH;
+  const badge=isNew?`<span class="pbadge new">Nouveau</span>`:hot?`<span class="pbadge hot">Populaire</span>`:"";
+  const meta=c.kind!=="web"?(c.kind==="custom"?"Communauté":"Caméra"):p?(p>1?p+" parties":"1 partie"):"Navigateur";
+  return `<button class="ptile" type="button" data-play="${esc(c.id)}" style="--h:${pHue(c.id)}" aria-label="${esc(c.name)}">
+    <span class="pthumb"><span class="pglow"></span><span class="picon">${icon(c)}</span><span class="pplay">${PLAY}</span>${badge}</span>
+    <span class="pname">${esc(c.name)}</span><span class="pmeta">${esc(meta)}</span></button>`;
+}
+function pRow(title,list,plays,hot,cat){
+  if(!list.length)return "";
+  return `<section class="prow"><div class="prow-h"><h3>${title}</h3>${cat?`<button type="button" class="plink2" data-pcat="${cat}">Tout voir →</button>`:""}</div>
+    <div class="ptrack">${list.map(c=>pTile(c,plays,hot.has(c.id))).join("")}</div></section>`;
+}
+function renderFeat(){
+  const box=$("pFeat"); if(!box)return;
+  const feats=CH.filter(c=>c.batch&&c.batch===LATEST_BATCH); if(!feats.length){box.hidden=true;return}
+  pFeatI=(pFeatI+feats.length)%feats.length; const c=feats[pFeatI], b=boardFor(c.id)[0];
+  box.style.setProperty("--h",pHue(c.id));
+  box.innerHTML=`<div class="pfeat-art" aria-hidden="true"><span class="pring"></span><span class="picon">${icon(c)}</span></div>
+    <div class="pfeat-txt"><span class="pbadge new">À la une</span><h2>${esc(c.name)}</h2><p>${esc(c.desc)}</p>
+      <div class="row" style="justify-content:flex-start"><button class="btn solid big" type="button" data-play="${esc(c.id)}">${PLAY} Jouer</button>
+      ${b?`<span class="msg">Record : <b class="num">${esc(c.fmt(b.v))}</b> par ${plink(b)}</span>`:`<span class="msg">Aucun record : sois le premier !</span>`}</div></div>
+    <div class="pdots">${feats.map((f,i)=>`<button type="button" class="${i===pFeatI?"on":""}" data-pfeat="${i}" aria-label="${esc(f.name)}"></button>`).join("")}</div>`;
+}
+function startFeatTimer(){clearInterval(pFeatT);pFeatT=setInterval(()=>{if(document.hidden||currentTab!=="defis")return;pFeatI++;renderFeat()},6500)}
+function renderPortal(force){
+  const rows=$("pRows"); if(!rows)return;
+  const plays=playsOf(), webAll=CH.filter(c=>c.kind==="web"), recent=getRecent();
+  const sig=[pCat,pQuery,recent.join(","),CH.length,Object.entries(plays).map(e=>e.join(":")).join(",")].join("|");
+  if(!force&&sig===pSig)return; pSig=sig;
+  const top=[...CH].filter(c=>plays[c.id]).sort((a,b)=>plays[b.id]-plays[a.id]), hot=new Set(top.slice(0,5).map(c=>c.id));
+  $("pCats").innerHTML=PCATS.map(([k,l])=>`<button type="button" role="tab" aria-selected="${k===pCat}" class="${k===pCat?"on":""}" data-pcat="${k}">${l}</button>`).join("");
+  const q=pQuery.trim().toLowerCase();
+  if(q||pCat!=="all"){
+    let list=pCat==="new"?CH.filter(c=>c.batch).sort((a,b)=>(b.batch||0)-(a.batch||0)):pCat==="all"?[...CH]:CH.filter(c=>pCatOf(c)===pCat);
+    if(q)list=list.filter(c=>(c.name+" "+c.desc).toLowerCase().includes(q)||(window.t&&(window.t(c.name)+" "+window.t(c.desc)).toLowerCase().includes(q)));
+    rows.innerHTML=list.length?`<div class="pgrid">${list.map(c=>pTile(c,plays,hot.has(c.id))).join("")}</div>`
+      :`<div class="empty">Aucun jeu ne correspond à « ${esc(pQuery.trim())} ».</div>`;
+    return;
+  }
+  const byCat=k=>webAll.filter(c=>pCatOf(c)===k);
+  rows.innerHTML=pRow("Joués récemment",recent.map(id=>CHM[id]),plays,hot,null)
+    +pRow("Nouveautés",CH.filter(c=>c.batch).sort((a,b)=>(b.batch||0)-(a.batch||0)),plays,hot,"new")
+    +pRow("Les plus joués",top.slice(0,14),plays,hot,null)
+    +pRow("Course",byCat("course"),plays,hot,"course")+pRow("Arcade",byCat("arcade"),plays,hot,"arcade")+pRow(".io",byCat("io"),plays,hot,"io")
+    +pRow("Réflexion",byCat("reflexion"),plays,hot,"reflexion")+pRow("Réflexes",byCat("reflexes"),plays,hot,"reflexes")
+    +pRow("Caméra",CH.filter(c=>c.kind!=="web"),plays,hot,"camera");
+}
+document.addEventListener("click",e=>{
+  const pc=e.target.closest("[data-pcat]"); if(pc){pCat=pc.dataset.pcat;renderPortal(true);const p=$("portal");if(p&&pc.closest(".prow"))p.scrollIntoView({behavior:"smooth",block:"start"});return}
+  const pf=e.target.closest("[data-pfeat]"); if(pf){pFeatI=+pf.dataset.pfeat;renderFeat();startFeatTimer()}
+});
+{const ps=$("pSearch"); if(ps)ps.addEventListener("input",()=>{pQuery=ps.value;renderPortal(true)})}
+startFeatTimer();
 function renderVids(){
   $("vids").innerHTML=CH.filter(c=>c.wr&&c.wr.video).map(c=>`<article class="vid">
     <button class="poster" style="width:100%;font:inherit;cursor:pointer;padding:0" data-watch="${esc(c.id)}" aria-label="Regarder ${esc(c.name)} : ${esc(c.wr.who)}">
@@ -625,7 +693,8 @@ function renderVids(){
 function renderGrids(){
   renderVids();
   $("gridCam").innerHTML=CH.filter(c=>c.kind==="cam").map(card).join("");
-  $("gridWeb").innerHTML=CH.filter(c=>c.kind==="web"&&!(c.batch&&c.batch===LATEST_BATCH)).map(card).join("");
+  const gw=$("gridWeb"); if(gw)gw.innerHTML=CH.filter(c=>c.kind==="web"&&!(c.batch&&c.batch===LATEST_BATCH)).map(card).join("");
+  renderPortal();
   $("gridWur").innerHTML=CH.filter(c=>c.kind==="wur").map(card).join("");
   const gv=$("gridVip"); if(gv)gv.innerHTML=CH.filter(c=>c.kind==="vip").map(card).join("");
   const cu=CH.filter(c=>c.kind==="custom");
@@ -963,7 +1032,7 @@ function weeklyBoard(cid){
   return Object.values(best).sort((a,b)=>c.better==="low"?a.v-b.v:b.v-a.v);
 }
 function renderCta(){const el=$("passCta");if(el)el.hidden=isMember()}
-function renderWeekly(){renderCta();
+function renderWeekly(){renderCta();renderFeat();
   const wi=weekInfo(), left=wi.end-Date.now(), dd=Math.floor(left/864e5), hh=Math.floor(left%864e5/36e5);
   $("weekLeft").textContent=`Classement de la semaine · se termine dans ${dd} j ${hh} h`;
   $("weekly").innerHTML=weeklyPicks().map(c=>{const b=weeklyBoard(c.id);
@@ -1659,7 +1728,7 @@ function openArena(cid){
   const c=CHM[cid]; if(!c)return;
   arena.hidden=false; document.body.style.overflow="hidden";
   document.querySelectorAll(".short video").forEach(v=>v.pause());
-  $("arenaTitle").textContent=c.name; practice=false; introSkip=false; track("open",{c:cid});
+  $("arenaTitle").textContent=c.name; practice=false; introSkip=false; track("open",{c:cid}); pushRecent(cid);
   if(c.kind==="vip"&&!isMember()){showLimit(c,"vip");return}
   if(c.kind==="web")GAMES[c.game||cid](c); else camIntro(c);
 }
@@ -2713,6 +2782,7 @@ function gameLoop(step){let last=performance.now(),raf,stop=false;
   const f=now=>{if(stop)return;const dt=Math.min(.05,(now-last)/1000);last=now;step(dt,now);raf=requestAnimationFrame(f)};
   raf=requestAnimationFrame(f);cleanup.push(()=>{stop=true;cancelAnimationFrame(raf)});}
 const TT=s=>window.t?window.t(s):s;
+function popText(list,t,x,y,col){list.push({t:TT(t),x,y,col:col||"#ffc94a",life:1.2})}
 function drawPops(g,list,dt,ox,oy){for(const p of list){p.life-=dt;p.y-=40*dt;g.globalAlpha=Math.max(0,Math.min(1,p.life));g.fillStyle=p.col;g.font="700 20px Chakra Petch, sans-serif";g.textAlign="center";g.fillText(p.t,p.x-(ox||0),p.y-(oy||0))}
   g.globalAlpha=1;for(let i=list.length-1;i>=0;i--)if(list[i].life<=0)list.splice(i,1)}
 
