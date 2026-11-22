@@ -599,3 +599,48 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .ptile:focus-visible{outline:none}.ptile:focus-visible .pthumb{outline:3px solid #fff;outline-offset:2px}
 @media (max-width:640px){.pfeat{grid-template-columns:1fr;text-align:left;padding:18px}.pfeat-art{width:min(55%,150px)}.ptrack{grid-auto-columns:minmax(128px,150px);gap:12px}.pgrid{grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}}
 @media (prefers-reduced-motion:reduce){.pfeat-art .pring,.pglow{animation:none}}
+
+/* ================= design des écrans de jeu ================= */
+.arena{--gh:275;background:radial-gradient(80% 60% at 15% 0%,hsl(var(--gh) 90% 45% / .28),transparent 60%),radial-gradient(70% 60% at 100% 100%,hsl(calc(var(--gh) + 70) 90% 50% / .18),transparent 60%),rgba(5,2,12,.97)}
+.arena::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(hsl(var(--gh) 90% 60% / .06) 1px,transparent 1px),linear-gradient(90deg,hsl(var(--gh) 90% 60% / .06) 1px,transparent 1px);background-size:40px 40px;-webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%);mask-image:radial-gradient(ellipse at center,#000 30%,transparent 80%)}
+.arena-top{position:relative}
+.arena-ico{width:40px;height:40px;flex:none;border-radius:12px;display:grid;place-items:center;color:#fff;
+  background:linear-gradient(140deg,hsl(var(--gh) 70% 30%),hsl(calc(var(--gh) + 45) 70% 14%));border:1px solid hsl(var(--gh) 90% 60% / .5);box-shadow:0 0 18px hsl(var(--gh) 90% 55% / .45)}
+.arena-ico svg{width:60%;height:60%;stroke:currentColor;fill:none;stroke-width:1.8}
+.arena-top h2{background:linear-gradient(90deg,#fff,hsl(var(--gh) 95% 80%));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stage{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)),rgba(14,8,28,.82);border:1px solid hsl(var(--gh) 90% 60% / .28);
+  box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(8px)}
+.stage .btn.solid{background:linear-gradient(135deg,hsl(var(--gh) 90% 58%),hsl(calc(var(--gh) + 40) 90% 58%));border-color:transparent;color:#fff;box-shadow:0 6px 22px hsl(var(--gh) 90% 50% / .45)}
+.stage .btn.solid.gold{background:linear-gradient(135deg,#ffd36b,#ffae2b);color:#1a1100;box-shadow:0 6px 22px rgba(255,201,74,.45)}
+.gamecv{border:1px solid hsl(var(--gh) 90% 60% / .45);box-shadow:0 0 0 4px hsl(var(--gh) 90% 60% / .08),0 16px 40px rgba(0,0,0,.5),0 0 30px hsl(var(--gh) 90% 55% / .25)}
+.stage.top>.msg:first-child,.stage.top>div.mega:first-child{display:inline-flex;align-items:baseline;gap:6px;flex-wrap:wrap;justify-content:center;padding:6px 16px;border-radius:999px;
+  background:rgba(255,255,255,.05);border:1px solid hsl(var(--gh) 90% 60% / .3);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.stage.top>.msg:first-child .mega,.stage.top>div.mega:first-child{color:#fff;text-shadow:0 0 18px hsl(var(--gh) 95% 65%)}
+.gintro{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:560px}
+.gart{position:relative;width:112px;height:112px;border-radius:28px;display:grid;place-items:center;overflow:hidden;
+  background:radial-gradient(110% 90% at 25% 15%,hsl(var(--gh) 95% 60% / .65),transparent 60%),linear-gradient(140deg,hsl(var(--gh) 65% 26%),hsl(calc(var(--gh) + 45) 70% 10%));
+  border:1px solid hsl(var(--gh) 90% 65% / .5);box-shadow:0 12px 40px hsl(var(--gh) 90% 50% / .45);animation:gfloat 3.2s ease-in-out infinite}
+.gart.sm{width:72px;height:72px;border-radius:20px}
+.gart .pglow{opacity:1}
+.gart .picon{position:relative;width:52%;height:52%;color:#fff;filter:drop-shadow(0 0 12px hsl(var(--gh) 95% 70%))}
+.gart .picon svg{width:100%;height:100%;stroke:currentColor;fill:none;stroke-width:1.7}
+@keyframes gfloat{50%{transform:translateY(-6px)}}
+.gstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;width:100%}
+.gstat{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line);text-align:left;min-width:0}
+.gstat span{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.gstat b{font-size:22px;line-height:1.2}
+.gstat small{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gstat.wr{border-color:rgba(95,208,255,.4)}.gstat.wr b{color:var(--wr)}
+.gstat.site{border-color:rgba(255,201,74,.4)}.gstat.site b{color:var(--gold)}
+.gstat.me{border-color:hsl(var(--gh) 90% 60% / .5)}.gstat.me b{color:hsl(var(--gh) 95% 78%)}
+.gtries{margin:0;font-size:13px;color:var(--muted);padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.04)}
+.gres .gbadge{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--fg)}
+.gres.isrec .gbadge{background:linear-gradient(90deg,#ffd36b,#ff4fd8);color:#1a0820;box-shadow:0 0 22px rgba(255,201,74,.5)}
+.gres.ispb .gbadge{background:linear-gradient(90deg,#5fd0ff,#b04cff);color:#fff}
+.gres .mega{background:linear-gradient(180deg,#fff,hsl(var(--gh) 95% 80%));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px hsl(var(--gh) 95% 60% / .6))}
+.gres .mega.gold{background:linear-gradient(180deg,#fff3c4,#ffc94a);-webkit-background-clip:text;background-clip:text}
+.gres{animation:gpop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes gpop{from{transform:scale(.85);opacity:0}}
+.confetti{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+@media (prefers-reduced-motion:reduce){.gart,.gres{animation:none}}
+@media (max-width:560px){.gart{width:88px;height:88px;border-radius:22px}.gstat b{font-size:19px}}
