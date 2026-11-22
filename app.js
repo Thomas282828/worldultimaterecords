@@ -2825,7 +2825,7 @@ function runMoto(c){
   const W=420,H=520,SEG=24,GRAV=1150,HR=12,L=46,LH=Math.hypot(L/2,36),STEP=1/120,best=bestOf(c);
   stage.innerHTML=`<div class="msg"><span class="mega num" id="mm" style="font-size:34px">0</span> points · <span class="num" id="md">0</span> m · saltos <span class="num" id="mf">0</span></div>
     ${gameCanvas(W,H,"max-height:56vh")}${holdPad([["l","◀","Freiner / pencher en arrière"],["r","▶","Accélérer / pencher en avant"]])}
-    <p class="msg">▶ (ou flèche droite) : accélérer, et en l'air pencher en avant. ◀ (ou flèche gauche) : freiner, et en l'air pencher en arrière. Enchaîne plusieurs saltos dans un même saut pour un énorme bonus, retombe sur les deux roues pour un atterrissage parfait, ramasse les pièces et passe sur les flèches jaunes pour un turbo !</p>`;
+    <p class="msg">▶ (ou flèche droite) : accélérer, et en l'air tourner en avant (frontflip). ◀ (ou flèche gauche) : freiner, et en l'air tourner en arrière (backflip). Prends les grands tremplins à fond pour voler au-dessus des trous, enchaîne plusieurs flips dans un même saut pour un énorme bonus, et retombe sur les deux roues pour un atterrissage parfait !</p>`;
   const cv=$("cv"),g=cv.getContext("2d"),keys={};
   bindHold(keys,{ArrowRight:"r",KeyD:"r",ArrowUp:"r",ArrowLeft:"l",KeyA:"l",KeyQ:"l",ArrowDown:"l"});
   // terrain : une hauteur tous les SEG pixels (NaN = trou), pièces et turbos
@@ -2833,18 +2833,26 @@ function runMoto(c){
   const lastY=()=>{for(let i=gr.length-1;i>=0;i--)if(!isNaN(gr[i]))return gr[i];return 0};
   const rowCoins=(i0,n,lift)=>{for(let k=0;k<n;k++){const i=i0+k;if(!isNaN(gr[i]))coins.push({x:i*SEG+SEG/2,y:gr[i]-(lift||38)})}};
   const gen=()=>{const d=Math.min(1,gr.length/1400),b=lastY(),t=Math.random(),start=gr.length;
-    if(t<.28){const n=8+Math.random()*10|0,a=(25+Math.random()*55*(.6+d))*(Math.random()<.6?-1:1);for(let i=1;i<=n;i++)gr.push(b+a*Math.sin(Math.PI*i/n));if(Math.random()<.6)rowCoins(start+2,Math.min(5,n-3),44)}
-    else if(t<.58){const n=5+Math.random()*3|0,rise=55+Math.random()*45+60*d;if(Math.random()<.5)pads.push({x:(start+1)*SEG,used:false});
+    if(gr.length>50&&t<.2){// grand saut : turbo, grande descente pour prendre de la vitesse, tremplin, trou, longue réception en pente
+      pads.push({x:(start+1)*SEG,used:false});for(let i=1;i<=2;i++)gr.push(b);
+      const dn=170+Math.random()*40;for(let i=1;i<=18;i++)gr.push(b+dn*(1-Math.cos(Math.PI*i/18))/2);for(let i=0;i<3;i++)gr.push(b+dn);
+      const kick=50+Math.random()*15;for(let i=1;i<=7;i++)gr.push(b+dn-kick*(i/7)*(i/7));const lip=b+dn-kick,top=gr.length,gap=5+(d*2|0);for(let i=0;i<gap;i++)gr.push(NaN);
+      const l0=lip+45,drop=420+Math.random()*120;for(let i=0;i<28;i++)gr.push(l0+drop*Math.pow(i/28,1.1));for(let i=1;i<=6;i++)gr.push(l0+drop+i*2);
+      for(let k=0;k<gap+8;k++){const f=(k+.5)/(gap+8);coins.push({x:(top+k)*SEG+SEG/2,y:lip-90-Math.sin(f*Math.PI)*90+f*f*drop*.45})}}
+    else if(t<.36){const n=8+Math.random()*10|0,a=(25+Math.random()*55*(.6+d))*(Math.random()<.6?-1:1);for(let i=1;i<=n;i++)gr.push(b+a*Math.sin(Math.PI*i/n));if(Math.random()<.6)rowCoins(start+2,Math.min(5,n-3),44)}
+    else if(t<.62){const n=5+Math.random()*3|0,rise=55+Math.random()*45+60*d;if(Math.random()<.5)pads.push({x:(start+1)*SEG,used:false});
       for(let i=1;i<=n;i++)gr.push(b-rise*i/n);
       const top=gr.length,gap=3+Math.round(Math.random()*2+d*4);for(let i=0;i<gap;i++)gr.push(NaN);
       const land=b-rise*.35+Math.random()*30;for(let i=0;i<8;i++)gr.push(land+i*5);
       for(let k=0;k<gap;k++){const f=(k+.5)/gap;coins.push({x:(top+k)*SEG+SEG/2,y:b-rise-60-Math.sin(f*Math.PI)*60})}}
-    else if(t<.72){for(let i=1;i<=10;i++)gr.push(b+(i%2?-(8+d*14):0))}
+    else if(t<.74){for(let i=1;i<=10;i++)gr.push(b+(i%2?-(8+d*14):0))}
     else{const dy=(Math.random()-.45)*(110+80*d),n=10;for(let i=1;i<=n;i++)gr.push(b+dy*i/n);if(Math.random()<.35)pads.push({x:(start+2)*SEG,used:false});else rowCoins(start+3,5,36)}};
-  const need=i=>{while(gr.length<i+3)gen()};
+  // adoucit les creux en V au début de chaque morceau (sinon la moto s'y coince ou s'y écrase)
+  const smooth=s0=>{for(let p=0;p<3;p++)for(let i=Math.max(1,s0-3);i<=Math.min(gr.length-2,s0+3);i++){const a=gr[i-1],b=gr[i],c2=gr[i+1];if(!isNaN(a)&&!isNaN(b)&&!isNaN(c2))gr[i]=(a+2*b+c2)/4}};
+  const need=i=>{while(gr.length<i+3){const s0=gr.length;gen();smooth(s0)}};
   const P=(x,y)=>({x,y,px:x,py:y});
   let rw=P(70,-HR),fw=P(70+L,-HR),hd=P(70+L/2,-HR-36);
-  let over=false,go=false,maxX=rw.x,bonus=0,flips=0,acc=0,prevA=0,airT=0,camX=0,camY=-H*.55,shake=0,spin=0,acu=0,turbo=0,coinN=0;const pops=[],fx=makeParts();
+  let over=false,go=false,maxX=rw.x,bonus=0,flips=0,acc=0,prevA=0,airT=0,camX=0,camY=-H*.55,shake=0,spin=0,acu=0,turbo=0,coinN=0,stuck=0;const pops=[],fx=makeParts();
   const stars=Array.from({length:60},()=>({x:Math.random()*W,y:Math.random()*H*.6,s:Math.random()*1.6+.4}));
   const city=Array.from({length:40},(_,i)=>({x:i*46,w:30+Math.random()*26,h:50+Math.random()*130}));
   const cons=(a,b,len)=>{const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,k=(d-len)/d*.5;a.x+=dx*k;a.y+=dy*k;b.x-=dx*k;b.y-=dy*k};
@@ -2866,9 +2874,11 @@ function runMoto(c){
     const hr=collide(rw),hf=collide(fw);const ax=fw.x-rw.x,ay=fw.y-rw.y,al=Math.hypot(ax,ay)||1,ux=ax/al,uy=ay/al,pxv=-uy,pyv=ux;
     if(!over&&go&&(keys.r||turbo>0)){if(hr){const tx=-hr.ny,ty=hr.nx,sp=Math.hypot(rw.x-rw.px,rw.y-rw.py)/STEP,mx=turbo>0?760:560,ac2=turbo>0?1700:950;
         if(sp<mx){rw.px-=tx*ac2*STEP*STEP;rw.py-=ty*ac2*STEP*STEP}}
-      if(keys.r){const s=(hr&&hf?0:hr||hf?.3:.75)*300*STEP*STEP;fw.px-=pxv*s;fw.py-=pyv*s;rw.px+=pxv*s;rw.py+=pyv*s}}
+      if(keys.r){const s=(hr&&hf?0:hr||hf?.3:1.75)*300*STEP*STEP;fw.px-=pxv*s;fw.py-=pyv*s;rw.px+=pxv*s;rw.py+=pyv*s}}
     if(!over&&go&&keys.l){if(hr||hf){for(const w of [rw,fw]){w.px+=(w.x-w.px)*.025;w.py+=(w.y-w.py)*.025}}
-      const s=(hr&&hf?.25:hr||hf?.55:1)*300*STEP*STEP;fw.px+=pxv*s;fw.py+=pyv*s;rw.px-=pxv*s;rw.py-=pyv*s}
+      const s=(hr&&hf?.25:hr||hf?.55:1.9)*300*STEP*STEP;fw.px+=pxv*s;fw.py+=pyv*s;rw.px-=pxv*s;rw.py-=pyv*s}
+    // en l'air sans toucher aux flèches : la rotation ralentit doucement (atterrir est plus facile)
+    if(!hr&&!hf&&!keys.l&&!keys.r){const vr=((fw.x-fw.px)-(rw.x-rw.px))*pxv+((fw.y-fw.py)-(rw.y-rw.py))*pyv,k=vr*.012;fw.px+=pxv*k;fw.py+=pyv*k;rw.px-=pxv*k;rw.py-=pyv*k}
     return {g:!!(hr||hf),both:!!(hr&&hf)}};
   countdown(()=>{go=true});
   gameLoop(dt=>{
@@ -2877,7 +2887,7 @@ function runMoto(c){
       const a=Math.atan2(fw.y-rw.y,fw.x-rw.x);let da=a-prevA;if(da>Math.PI)da-=2*Math.PI;if(da<-Math.PI)da+=2*Math.PI;prevA=a;
       if(!ground){acc+=da;airT+=STEP}else{if(airT>.25&&!over){const n=Math.floor((Math.abs(acc)+.7)/(2*Math.PI));
           fx.burst((rw.x+fw.x)/2,(rw.y+fw.y)/2+HR,14,260,"#ffc94a",.5,2.5);
-          if(n>0){const pts=100*n*n;flips+=n;bonus+=pts;$("mf").textContent=flips;popText(pops,(n>1?n+"× ":"")+TT("SALTO !")+" +"+pts,rw.x,rw.y-60);shake=4+n*2;if(ac())tone(660+n*220,.15,null,"triangle",.13)}
+          if(n>0){const front=acc>0,pts=(front?150:100)*n*n;flips+=n;bonus+=pts;$("mf").textContent=flips;popText(pops,(n>1?n+"× ":"")+(front?"FRONTFLIP !":"BACKFLIP !")+" +"+pts,rw.x,rw.y-60,front?"#5fd0ff":"#ffc94a");shake=4+n*2;if(ac())tone(660+n*220,.15,null,"triangle",.13)}
           if(st.both&&airT>.5){bonus+=50;popText(pops,TT("Parfait !")+" +50",rw.x,rw.y-(n>0?90:60),"#5ee6a8");if(ac())tone(1318,.08,null,"sine",.1)}}acc=0;airT=0}
       if(!over){const gh=groundAt(hd.x);if(!isNaN(gh)&&hd.y>gh-6)crash("Chute !");
         const lo=Math.max(...gr.slice(Math.max(0,Math.floor(rw.x/SEG)-30),Math.floor(rw.x/SEG)+5).filter(v=>!isNaN(v)));if(rw.y>lo+420)crash("Tombé dans le trou !")}}
@@ -2888,6 +2898,8 @@ function runMoto(c){
     if(!over){maxX=Math.max(maxX,rw.x);const m=Math.floor((maxX-70)/30);$("md").textContent=m;$("mm").textContent=total()}
     spin+=(Math.hypot(rw.x-rw.px,rw.y-rw.py))/HR;
     const vel=Math.hypot(rw.x-rw.px,rw.y-rw.py)/STEP;
+    // anti-blocage : coincé au fond d'un creux en accélérant -> petite poussée vers l'avant
+    if(!over&&go&&keys.r&&ground&&vel<30){stuck+=dt;if(stuck>.8){stuck=0;for(const w of [rw,fw,hd]){w.px-=2.2;w.py+=1.6}}}else stuck=0;
     // caméra
     const tx=(rw.x+fw.x)/2-W*.36,ty=(rw.y+fw.y)/2-H*.58;camX+=(tx-camX)*Math.min(1,dt*6);camY+=(ty-camY)*Math.min(1,dt*4);
     const sx=camX+(shake?(Math.random()-.5)*shake:0),sy=camY+(shake?(Math.random()-.5)*shake:0);shake=Math.max(0,shake-dt*30);
@@ -2923,6 +2935,8 @@ function runMoto(c){
     g.lineWidth=3.5;g.beginPath();g.moveTo(shX-sx,shY-sy);g.lineTo(hbX-sx,hbY-sy);g.moveTo(seatX-sx,seatY-sy);g.lineTo(ftX-sx,ftY-sy);g.stroke();
     g.fillStyle="#5fd0ff";g.beginPath();g.arc(hd.x-sx,hd.y-sy,8,0,7);g.fill();g.fillStyle="#0c0520";g.beginPath();g.arc(hd.x-sx+(fw.x-rw.x)/L*3,hd.y-sy+(fw.y-rw.y)/L*3,4,-.8,.8);g.fill();g.shadowBlur=0;g.lineCap="butt";
     drawPops(g,pops,dt,sx,sy);
+    if(!ground&&!over&&Math.abs(acc)>.9){const deg=Math.round(Math.abs(acc)*180/Math.PI);g.textAlign="center";g.font="800 22px Chakra Petch, sans-serif";g.fillStyle=acc<0?"#ffc94a":"#5fd0ff";g.shadowColor=g.fillStyle;g.shadowBlur=14;
+      g.fillText((acc<0?"↺ BACKFLIP ":"↻ FRONTFLIP ")+deg+"°",W/2,56);g.shadowBlur=0}
     drawBest(g,c,best,10,18);if(turbo>0){g.fillStyle="#ffc94a";g.font="800 14px Chakra Petch, sans-serif";g.textAlign="right";g.fillText(TT("TURBO !"),W-10,18)}
   });
 }
@@ -2934,7 +2948,7 @@ function runSlide(c){
   const PZ=DEPTH*CAMH*(H/2)/(H/2-78);
   stage.innerHTML=`<div class="msg"><span class="mega num" id="sp" style="font-size:34px">0</span> points · <span class="num" id="sm">0</span> m · position <span class="num" id="sr">–</span></div>
     ${gameCanvas(W,H,"max-height:56vh")}${holdPad([["l","◀","Aller à gauche"],["r","▶","Aller à droite"]])}
-    <p class="msg">Glisse jusqu'en bas ! ◀ ▶ ou les flèches pour te diriger. Dans les virages, la vitesse te pousse vers le bord : ne sors pas du toboggan. Les flèches jaunes donnent un turbo, les tremplins roses te font voler, et tu peux pousser les autres dehors. Les 3 premiers à l'arrivée gagnent un gros bonus !</p>`;
+    <p class="msg">Glisse jusqu'en bas ! ◀ ▶ ou les flèches pour te diriger. Dans les virages, la vitesse te pousse vers le bord : ne sors pas du toboggan. Les flèches jaunes donnent un turbo. Les tremplins roses te font sauter par-dessus le vide jusqu'au morceau de toboggan suivant, plus bas : arrive vite et bien au centre pour ne pas tomber ! Tu peux pousser les autres dehors, et les 3 premiers à l'arrivée gagnent un gros bonus !</p>`;
   const cv=$("cv"),g=cv.getContext("2d"),keys={};
   bindHold(keys,{ArrowLeft:"l",KeyA:"l",KeyQ:"l",ArrowRight:"r",KeyD:"r"});
   let dragX=null;cv.onpointerdown=e=>{e.preventDefault();dragX=cvPoint(cv,e).x;try{cv.setPointerCapture(e.pointerId)}catch(_){}};
@@ -2947,9 +2961,15 @@ function runSlide(c){
     for(let i=0;i<len&&segs.length<N;i++){const e=Math.min(1,i/8,(len-i)/8);segs.push({curve:cu*e})}}
   let yy=0,ph=0;segs.forEach((s,i)=>{ph+=.035+.02*Math.sin(i*.013);yy+=Math.sin(ph)*28-6;s.y=yy;
     s.boost=(i>40&&i%37===0)?(Math.random()*1.2-.6):null;s.finish=i>=N-6;s.ramp=false});
-  {let nextR=90;segs.forEach((s,i)=>{if(i>=nextR&&i<N-40&&s.st&&segs[i+12]&&segs[i+12].st&&segs[i-3]&&segs[i-3].st){s.ramp=true;nextR=i+95+Math.random()*40|0}})}
+  // tremplins ; la plupart sont suivis d'un trou : on saute jusqu'au morceau de toboggan suivant, plus bas
+  const straight=(a,b)=>{for(let j=a;j<=b;j++)if(!segs[j]||!segs[j].st)return false;return true};
+  {let nextR=70;for(let i=0;i<N;i++){const s=segs[i];if(i<nextR||i>=N-60||!s.st||!straight(i-3,i+2))continue;
+    s.ramp=true;nextR=i+75+Math.random()*35|0;
+    if(Math.random()<.75){const G=7+Math.random()*4+Math.min(1,i/N)*4|0,DROP=900+Math.random()*900;
+      for(let k=1;k<=G;k++){segs[i+k].gap=true;segs[i+k].boost=null}segs[i+G+1].land=true;
+      for(let j=i+1;j<N;j++)segs[j].y-=DROP*Math.min(1,(j-i)/(G+1))}}}
   segs.forEach((s,i)=>{if(s.ramp)for(let k=1;k<4;k++)if(segs[i-k])segs[i-k].rampIn=true});
-  let pos=0,px=0,speed=0,boost=0,over=false,go=false,bonus=0,shake=0,jy=0,jv=0,air=0,airT=0;const pops=[],fx=makeParts();
+  let pos=0,px=0,speed=0,boost=0,over=false,go=false,bonus=0,shake=0,jy=0,jv=0,air=0,airT=0,gapJ=false,lastBi=0;const pops=[],fx=makeParts();
   const NAMES=["Zorg","Nova","Blip","Kiwi","Turbo","Mochi","Vega"],COLS=["#ff6b8a","#5ee6a8","#ffc94a","#5fd0ff","#ff9f43","#ff4fd8","#a78bfa"];
   const bots=NAMES.map((n,i)=>({n,col:COLS[i],z:PZ+SEGL*(1+(i%4)*1.2),x:[-.6,.6,-.2,.2,-.75,.75,0][i],sp:MAXS*(.86+Math.random()*.12),out:false,lane:Math.random()*1.4-.7,done:false}));
   const segAt=z=>segs[Math.floor(z/SEGL)%N];
@@ -2964,12 +2984,16 @@ function runSlide(c){
       speed=Math.min(MAXS*(1+boost),speed+MAXS*.35*dt);boost=Math.max(0,boost-dt*.4);
       const steer=dt*2.4*Math.max(.35,pct);if(keys.l)px-=steer;if(keys.r)px+=steer;
       if(air){jv-=2600*dt;jy+=jv*dt;airT+=dt;px-=dt*2*pct*pct*ps.curve*.08;
-        if(jy<=0){jy=0;air=0;fx.burst(W/2,H-50,22,260,"rgba(191,230,255,.9)",.5,3);shake=6;
-          if(Math.abs(px)>1.2)end("Sorti du toboggan !",false);else{const b=Math.round(airT*40);bonus+=b;popText(pops,TT("SAUT !")+" +"+b,W/2,H-170,"#ff4fd8")}}}
+        if(jy<=0&&ps.gap){if(jy<-900)end("Tombé dans le vide !",false)}
+        else if(jy<=0&&jy<-250)end("Tombé dans le vide !",false);
+        else if(jy<=0){jy=0;air=0;fx.burst(W/2,H-50,22,260,"rgba(191,230,255,.9)",.5,3);shake=6;
+          if(Math.abs(px)>1.2)end("Sorti du toboggan !",false);else{const b=Math.round(airT*(gapJ?90:40))+(gapJ?50:0);bonus+=b;popText(pops,TT(gapJ?"Atterrissage !":"SAUT !")+" +"+b,W/2,H-170,gapJ?"#5ee6a8":"#ff4fd8");gapJ=false}}}
       else{px-=dt*2*pct*pct*ps.curve*.1;
         if(Math.abs(px)>1){speed*=1-dt*.9;if(Math.random()<dt*20&&ac())tone(200,.03,null,"square",.03)}
         if(Math.abs(px)>1.32)end(ps.curve?"Éjecté dans le virage !":"Sorti du toboggan !",false);
-        if(ps.ramp&&pct>.45){air=1;airT=0;jv=900+pct*500;jy=1;popText(pops,TT("TREMPLIN !"),W/2,H-150,"#ff4fd8");if(ac())tone(330,.3,null,"triangle",.12)}}
+        const cbi=Math.floor((pos+PZ)/SEGL);let hitR=false;for(let j=Math.max(lastBi+1,cbi-3);j<=cbi;j++)if(segs[j%N].ramp)hitR=true;lastBi=cbi;
+        if(ps.gap&&!hitR){air=1;airT=0;jv=0;jy=-1;gapJ=true}
+        if(hitR){air=1;airT=0;jv=650+pct*750;jy=1;gapJ=!!segAt(pos+PZ+SEGL*2).gap;popText(pops,TT(gapJ?"SAUTE !":"TREMPLIN !"),W/2,H-150,"#ff4fd8");if(ac())tone(330,.3,null,"triangle",.12)}}
       const bi=Math.floor((pos+PZ)/SEGL);for(let j=bi-1;j<=bi;j++){const s=segs[(j+N)%N];if(!air&&s.boost!=null&&Math.abs(px-s.boost)<.28&&!s.used){s.used=true;boost=.45;speed=Math.min(MAXS*1.45,speed+MAXS*.25);bonus+=10;popText(pops,TT("TURBO !"),W/2,H-150,"#ffc94a");if(ac())tone(660,.15,null,"triangle",.12)}}
       pos+=speed*dt;
       // adversaires
@@ -2989,11 +3013,14 @@ function runSlide(c){
     g.fillStyle="#0e2a40";for(let i=0;i<7;i++){const mx=((i*90-segAt(pos).curve*8*pos/4000)%(W+120)+W+120)%(W+120)-60;g.beginPath();g.moveTo(mx-80,H*.5);g.lineTo(mx,H*.36+(i%3)*14);g.lineTo(mx+80,H*.5);g.fill()}
     g.fillStyle="#07131f";g.fillRect(0,H*.5,W,H*.5);
     const base=Math.floor(pos/SEGL),off=pos%SEGL,camX=px*ROADW,ps0=segs[base%N],ps1=segs[(base+1)%N],camY=ps0.y+(ps1.y-ps0.y)*(off/SEGL)+CAMH+jy*.6;
-    let x=0,dx=-(ps0.curve*(off/SEGL)),maxY=H;const proj=[];
+    let x=0,dx=-(ps0.curve*(off/SEGL));const proj=[],qs=[];
     for(let n=0;n<DRAW;n++){const s=segs[(base+n)%N],s2=segs[(base+n+1)%N],z1=n*SEGL-off+1,z2=z1+SEGL;if(z1<=0)continue;
       const k1=DEPTH/z1,k2=DEPTH/z2,X1=W/2+k1*(x-camX)*W/2+sk,X2=W/2+k2*(x+dx-camX)*W/2+sk,Y1=H/2-k1*(s.y-camY)*H/2,Y2=H/2-k2*(s2.y-camY)*H/2,R1=k1*ROADW*W/2,R2=k2*ROADW*W/2;
       proj[n]={X:X1,Y:Y1,s:k1};x+=dx;dx+=s.curve;
-      if(Y2>=maxY)continue;maxY=Y2;const alt=((base+n)>>2)%2;
+      if(!s.gap)qs.push({n,s,X1,X2,Y1,Y2,R1,R2})}
+    // peint du plus loin au plus proche : les morceaux plus bas, après un trou, restent visibles
+    for(let qi=qs.length-1;qi>=0;qi--){const {n,s,X1,X2,Y1,Y2,R1,R2}=qs[qi];const alt=((base+n)>>2)%2;
+      if(s.land){g.fillStyle="rgba(176,76,255,.35)";g.fillRect(X1-R1*.9,Y1,R1*.12,H);g.fillRect(X1+R1*.78,Y1,R1*.12,H)}
       const quad=(a,b,c2,d,col)=>{g.fillStyle=col;g.beginPath();g.moveTo(a,Y1);g.lineTo(b,Y1);g.lineTo(d,Y2);g.lineTo(c2,Y2);g.fill()};
       quad(X1-R1*1.42,X1+R1*1.42,X2-R2*1.42,X2+R2*1.42,alt?"#ff4fd8":"#b04cff");
       quad(X1-R1*1.14,X1+R1*1.14,X2-R2*1.14,X2+R2*1.14,alt?"#e8f6ff":"#bfe6ff");
@@ -3197,7 +3224,7 @@ function runDrift(c){
   const coins=[],cones=[];const placeCoins=()=>{coins.length=0;for(let i=10;i<pts.length;i+=12)coins.push(side(i,(Math.random()*2-1)*TRW*.6))};placeCoins();
   for(let i=22;i<pts.length;i+=27){const o=(Math.random()<.5?-1:1)*(20+Math.random()*35);for(let k=0;k<2;k++){const p=side(i+k,o+(k?14:0));cones.push({x:p.x,y:p.y,vx:0,vy:0,hit:0})}}
   const s0=pts[0],s1=pts[1];const car={x:s0[0],y:s0[1],a:Math.atan2(s1[1]-s0[1],s1[0]-s0[0]),vx:0,vy:0};
-  let t=0,pts2=0,chain=0,mult=1,driftT=0,calm=0,over=false,go=false,lastIdx=0,laps=0,camX=car.x,camY=car.y,nitro=30,lapT=0,bestLap=null;const marks=[],pops=[],smoke=makeParts();
+  let t=0,pts2=0,chain=0,mult=1,driftT=0,calm=0,over=false,go=false,lastIdx=0,laps=0,camX=car.x,camY=car.y,camA=car.a,nitro=30,lapT=0,bestLap=null;const marks=[],pops=[],smoke=makeParts();
   const end=()=>{if(over)return;over=true;const fin=Math.round(pts2+chain*mult);pts2=fin;chain=0;$("dp").textContent=fin;if(ac())tone(880,.25,null,"triangle",.14);
     $("dp").parentElement.insertAdjacentHTML("beforeend",` · <b style="color:var(--good)">${TT("Temps écoulé !")}</b>`);later(()=>finish(c,fin),1100)};
   const bank=()=>{if(chain>0){const v=Math.round(chain*mult);pts2+=v;popText(pops,"+"+v+(mult>1?" (×"+mult.toFixed(1)+")":""),car.x,car.y-30,"#ffc94a");if(ac())tone(660+mult*60,.1,null,"triangle",.1)}chain=0;mult=1;driftT=0};
@@ -3226,8 +3253,11 @@ function runDrift(c){
         if(rec)bestLap=lapT;lapT=0;popText(pops,TT("Tour")+" "+laps+" ! +200",car.x,car.y-50,"#5fd0ff");placeCoins();cones.forEach(k=>{if(k.hit){k.hit=0;k.vx=k.vy=0}})}lastIdx=n.i;
       $("dp").textContent=Math.round(pts2+chain*mult);$("dm").textContent="×"+mult.toFixed(1).replace(".0","")}
     for(const m of marks)m.l-=dt;while(marks.length&&marks[0].l<=0)marks.shift();if(marks.length>600)marks.splice(0,marks.length-600);
-    camX+=(car.x+car.vx*.35-camX)*Math.min(1,dt*5);camY+=(car.y+car.vy*.35-camY)*Math.min(1,dt*5);
-    g.fillStyle="#0a1a10";g.fillRect(0,0,W,H);g.save();g.translate(W/2-camX,H/2-camY);
+    // caméra derrière la voiture : la route tourne, la voiture pointe toujours vers le haut (gauche = gauche)
+    camX+=(car.x+car.vx*.12-camX)*Math.min(1,dt*6);camY+=(car.y+car.vy*.12-camY)*Math.min(1,dt*6);
+    {let da=car.a-camA;while(da>Math.PI)da-=2*Math.PI;while(da<-Math.PI)da+=2*Math.PI;camA+=da*Math.min(1,dt*5)}
+    const rot=-camA-Math.PI/2,rc=Math.cos(rot),rs=Math.sin(rot),PY=H*.68,proj=(x,y)=>{const dx=x-camX,dy=y-camY;return [W/2+dx*rc-dy*rs,PY+dx*rs+dy*rc]};
+    g.fillStyle="#0a1a10";g.fillRect(0,0,W,H);g.save();g.translate(W/2,PY);g.rotate(rot);g.translate(-camX,-camY);
     g.strokeStyle="rgba(94,230,168,.08)";g.lineWidth=1;for(let x=Math.floor((camX-W)/60)*60;x<camX+W;x+=60){g.beginPath();g.moveTo(x,camY-H);g.lineTo(x,camY+H);g.stroke()}
     const path=()=>{g.beginPath();pts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.closePath()};
     g.lineJoin="round";path();g.strokeStyle="#ff4fd8";g.shadowColor="#ff4fd8";g.shadowBlur=18;g.lineWidth=TRW*2+10;g.stroke();g.shadowBlur=0;
@@ -3241,7 +3271,9 @@ function runDrift(c){
     {const cone=g.createRadialGradient(40,0,4,40,0,90);cone.addColorStop(0,"rgba(255,251,224,.35)");cone.addColorStop(1,"rgba(255,251,224,0)");g.fillStyle=cone;g.beginPath();g.moveTo(16,-6);g.lineTo(120,-46);g.lineTo(120,46);g.lineTo(16,6);g.fill()}
     g.fillStyle="#5fd0ff";g.shadowColor="#5fd0ff";g.shadowBlur=16;g.beginPath();g.roundRect?g.roundRect(-16,-9,32,18,5):g.rect(-16,-9,32,18);g.fill();g.shadowBlur=0;
     g.fillStyle="#0c0520";g.fillRect(-4,-7,10,14);g.fillStyle="#ff4fd8";g.fillRect(-15,-2,30,4);g.fillStyle="#fffbe0";g.fillRect(13,-8,4,5);g.fillRect(13,3,4,5);g.fillStyle="#ff4f6a";g.fillRect(-17,-8,3,5);g.fillRect(-17,3,3,5);g.restore();
-    drawPops(g,pops,dt);g.restore();
+    g.restore();
+    for(const p of pops){p.life-=dt;const q=proj(p.x,p.y);g.globalAlpha=Math.max(0,Math.min(1,p.life));g.fillStyle=p.col;g.font="700 20px Chakra Petch, sans-serif";g.textAlign="center";g.fillText(p.t,q[0],q[1]-30-(1.2-p.life)*40)}
+    g.globalAlpha=1;for(let i=pops.length-1;i>=0;i--)if(pops[i].life<=0)pops.splice(i,1);
     // jauges : nitro, drift, chrono du tour
     g.fillStyle="rgba(12,5,32,.7)";g.fillRect(10,H-26,140,14);const ng=g.createLinearGradient(10,0,150,0);ng.addColorStop(0,"#ff6b3d");ng.addColorStop(1,"#ffc94a");g.fillStyle=ng;g.fillRect(12,H-24,136*nitro/100,10);
     g.fillStyle="#fff";g.font="700 11px Chakra Petch, sans-serif";g.textAlign="left";g.fillText("NITRO",14,H-30);
