@@ -1076,7 +1076,8 @@ insert into public.challenge_dirs (challenge, better) values
 ('higher','high'),('shade','high'),('estimate','low'),('pitch','high'),('rhythm','high'),('stars','high'),('mole','high'),('runner','high'),
 ('tightrope','high'),('pairs','low'),('maze','low'),('truefalse','high'),('slide','low'),('duration','low'),('angle','low'),('faces','high'),
 ('steadyclick','high'),('n-juggle','high'),('n-guess','low'),('n-snake','high'),('n-flappy','high'),('n-breakout','high'),('n-dodge','high'),
-('n-zone','high'),('n-clock','high'),('n-sum10','high'),('n-chain','high')
+('n-zone','high'),('n-clock','high'),('n-sum10','high'),('n-chain','high'),
+('n-moto','high'),('n-slide','high'),('n-blocks','high'),('n-arena','high'),('n-drift','high')
 on conflict (challenge) do nothing;
 
 -- Le site indique le sens de victoire avec chaque tentative (utile pour les futurs défis) ;
@@ -1174,7 +1175,7 @@ language sql immutable as $$
     case p_challenge
       when 'clicks' then 9 when 'alternate' then 9 when 'chrono' then 9.5
       when 'mental' then 28 when 'stroop' then 28 when 'odd' then 28 when 'mole' then 28
-      when 'truefalse' then 28 when 'n-clock' then 28 when 'runner' then 18 when 'n-sum10' then 43
+      when 'truefalse' then 28 when 'n-clock' then 28 when 'runner' then 18 when 'n-sum10' then 43 when 'n-drift' then 55
       else 2 end,
     -- jeux dont le score est un temps réel : la partie ne peut pas durer moins que ce temps
     case when p_challenge in ('alphabet','typing','steady','seq25','pairs','maze','slide','tightrope','n-dodge')

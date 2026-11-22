@@ -539,3 +539,8 @@ svg.chart .recl-t{fill:var(--muted);font:12px var(--ui)}
 .side button[data-cmtopen] small:empty{display:none}
 .side button[data-cmtopen]{position:relative}
 .cmtlink::before{content:"💬 "}
+
+/* ---- boutons à maintenir des grands jeux ---- */
+.holdpad{display:flex;gap:10px;justify-content:center;width:100%;max-width:420px;margin:8px auto 0;direction:ltr}
+.holdpad button{flex:1;min-height:58px;border-radius:14px;border:2px solid var(--line);background:var(--surface-2);color:var(--fg);font-size:26px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+.holdpad button.on{border-color:var(--gold);box-shadow:0 0 16px rgba(255,201,74,.45);background:rgba(255,201,74,.12)}
